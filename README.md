@@ -1,3 +1,12 @@
+## Links
+Offline Cookbook for Service Workers, PWA
+https://jakearchibald.com/2014/offline-cookbook/#cache-persistence
+
+Intro to Service Workers
+https://developers.google.com/web/fundamentals/primers/service-workers
+
+---
+
 *Looking for a shareable component template? Go here --> [sveltejs/component-template](https://github.com/sveltejs/component-template)*
 
 ---

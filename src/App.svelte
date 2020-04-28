@@ -1,30 +1,44 @@
-<script>
-	export let name;
+<script>	
+import { onMount, onDestroy } from 'svelte';
+import Router from 'svelte-spa-router';
+
+import Total from './pages/Total.svelte';
+import State from './pages/State.svelte';
+
+//export let name;
+
+let dateString = '20200427';
+let state = 'NY';
+
+const routes = {
+	'/': Total,
+	'/sort/:sort?/:dir?': Total,
+	'/state/:state': State,
+	'/state/:state/sort/:sort?/:dir?': State
+};
+
+const handlerOnMount = async () => {
+}
+
+onMount(handlerOnMount);
 </script>
-
-<main>
-	<h1>Hello {name}!</h1>
-	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
-</main>
-
 <style>
 	main {
 		text-align: center;
-		padding: 1em;
+		padding: 0;
 		max-width: 240px;
-		margin: 0 auto;
-	}
-
-	h1 {
-		color: #ff3e00;
-		text-transform: uppercase;
-		font-size: 4em;
-		font-weight: 100;
 	}
 
 	@media (min-width: 640px) {
 		main {
+			padding: 0 1em;
 			max-width: none;
+			margin: 0 auto;
 		}
 	}
 </style>
+
+<main>
+	<Router {routes} />
+</main>
+

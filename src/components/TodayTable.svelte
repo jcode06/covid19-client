@@ -67,11 +67,11 @@
     section.table { 
         width: 100%;
         overflow: auto;
+        border: solid 1px #ffc72a; 
     }
     table { 
         width: 95%;
         margin: 0 auto;
-        border: solid 1px #ffc72a; 
         border-collapse: collapse; 
         height: 65  vh;
         /* display: grid; */

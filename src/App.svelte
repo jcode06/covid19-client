@@ -5,8 +5,6 @@ import Router from 'svelte-spa-router';
 import Total from './pages/Total.svelte';
 import State from './pages/State.svelte';
 
-//export let name;
-
 let dateString = '20200427';
 let state = 'NY';
 
@@ -26,14 +24,14 @@ onMount(handlerOnMount);
 	main {
 		text-align: center;
 		padding: 0;
-		max-width: 240px;
+		margin: 0 auto;
+		max-width: 360px;
 	}
 
 	@media (min-width: 640px) {
 		main {
 			padding: 0 1em;
 			max-width: none;
-			margin: 0 auto;
 		}
 	}
 </style>

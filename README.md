@@ -5,6 +5,10 @@ https://jakearchibald.com/2014/offline-cookbook/#cache-persistence
 Intro to Service Workers
 https://developers.google.com/web/fundamentals/primers/service-workers
 
+Svelte D3 Example
+https://svelte.dev/repl/01a5774b53e9416584428c025668407b?version=3.15.0
+
+
 ---
 
 *Looking for a shareable component template? Go here --> [sveltejs/component-template](https://github.com/sveltejs/component-template)*

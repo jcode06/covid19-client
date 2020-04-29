@@ -2,6 +2,11 @@
     import { onMount, onDestroy } from 'svelte';
     import { push } from 'svelte-spa-router';
 
+    // set up fastdom to help with layout thrashing
+    import fastdom from 'fastDom';
+    import fastdomPromised from '../lib/fastdom-promised.js';
+    const myFastdom = fastdom.extend(fastdomPromised);
+
     export let params;
     export let dataset = {};
 
@@ -24,18 +29,25 @@
     };
 
     // Updates whenever the dataset prop is updated
-    $: headers = (dataset && dataset.headers) ? dataset.headers : [];
-
-    // Update tableData when dataset is updated
-    $: tableData = (dataset && dataset.headers) ? dataset.data : [];
+    $: { 
+        myFastdom.mutate( () => {            
+            headers = (dataset && dataset.headers) ? dataset.headers : [];
+            tableData = (dataset && dataset.headers) ? dataset.data : [];
+            console.log('[DatesTable.svelte - mutate] dataset prop updated...');        
+        });
+    };
 
     // sort when activeColumn or dir are updated
     $: {
         if(activeColumn && curDir) {  
             console.log('sorting', activeColumn, curDir);
 
-            tableData.sort(sortData(activeColumn, curDir) );
-            tableData = tableData;
+            myFastdom.mutate( () => {
+                tableData.sort(sortData(activeColumn, curDir) );
+                tableData = tableData;
+                
+                console.log('[DatesTable.svelte - mutate] tableData sorted...');
+            });
         }
     };
 
@@ -68,11 +80,11 @@
     section.table { 
         width: 100%;
         overflow: auto;
+        border: solid 1px #ffc72a; 
     }
     table { 
         width: 95%;
         margin: 0 auto;
-        border: solid 1px #ffc72a; 
         border-collapse: collapse; 
         height: 65  vh;
         /* display: grid; */

@@ -2,32 +2,72 @@
 import { onMount, onDestroy } from 'svelte';
 import * as d3 from 'd3';
 
-export let dataset = [];
+// set up fastdom to help with layout thrashing
+import fastdom from 'fastDom';
+import fastdomPromised from '../lib/fastdom-promised.js';
+const myFastdom = fastdom.extend(fastdomPromised);
 
+export let dataset = [];
+export let scalePercentage = 1.00;
+export let aspectRatio = 16/9; // default to 16:9 widescreen format
+
+// Just update the graph whenever the dataset may change
 $: {
-    console.log('reactive Chart', dataset);
     if(dataset && dataset.length > 0) {
-        update();
+        myFastdom.mutate( () => {
+            console.log('[LineChart.svelte - mutate] updating...');
+            update();
+        });
     }
 }
 
-const margin = { top: 40, right: 20, bottom: 50, left: 50 };
-const graphWidth = 560 - margin.left - margin.right;
-const graphHeight = 400 - margin.top - margin.bottom;
+let margin;
+let graphWidth;
+let graphHeight;
 
-let svg, graph,
+// components of the graph
+let container,
+    svg, graph,
     xScale, yScale,
     xAxisGroup, yAxisGroup,
     posLine, posPath,
     deathLine, deathPath;
 
-const handlerOnMount = () => {
+const initialize = () => {
+
+    // create references to the different DOM elements
+    container = document.querySelector('.canvas');
+
+    // Initialize canvas and graph
     svg = d3.select('.canvas')
         .append('svg')
+
+    graph = svg.append('g');
+
+    xAxisGroup = graph.append('g').attr('class', 'x-axis');
+
+    yAxisGroup = graph.append('g').attr('class', 'y-axis');
+
+    posPath = graph.append('path');
+    deathPath = graph.append('path');
+};
+
+const setSizesAndScales = () => {
+    // set the sizes and scales for different elements
+    // can be rerun on page resize
+    let width = container.clientWidth * scalePercentage;
+    let height = width / aspectRatio;
+
+    margin = { top: 40, right: 20, bottom: 50, left: 50 };
+    graphWidth = width - margin.left - margin.right;
+    graphHeight = height - margin.top - margin.bottom;
+
+    // Initialize canvas & group dimensions
+    svg 
         .attr('width', graphWidth + margin.left + margin.right)
         .attr('height', graphHeight + margin.top + margin.bottom);
 
-    graph = svg.append('g')
+    graph
         .attr('width', graphWidth)
         .attr('height', graphHeight)
         .attr('transform', `translate(${margin.left}, ${margin.top})`);
@@ -35,12 +75,8 @@ const handlerOnMount = () => {
     xScale = d3.scaleTime().range([0, graphWidth]);
     yScale = d3.scaleLinear().range([graphHeight, 0]);
 
-    xAxisGroup = graph.append('g')
-        .attr('class', 'x-axis')
+    xAxisGroup
         .attr('transform', `translate(0, ${graphHeight})`);
-
-    yAxisGroup = graph.append('g')
-        .attr('class', 'y-axis');
 
     // line for total positives
     posLine = d3.line()
@@ -50,18 +86,31 @@ const handlerOnMount = () => {
     deathLine = d3.line()
         .x( d => xScale(new Date(d.date)) )
         .y( d => yScale(d.death));
+};
 
-    posPath = graph.append('path');
-    deathPath = graph.append('path');
+const handlerOnMount = async () => {
+    await myFastdom.mutate( () => {
+        initialize();
+        setSizesAndScales();
 
-    console.log('mounted');
+        console.log('[LineChart.svelte - mutate] initializing...');
+    });
+
+    console.log('[LineChart.svelte - handlerOnMount] finished...');
+};
+
+const handlerResize = () => {
+
+    myFastdom.mutate( () => {
+        setSizesAndScales();
+        update();
+
+        console.log('[LineChart.svelte - handlerResize] resizing...');
+    });
+
 };
 
 const update = () => {
-    console.log('Chart', dataset);
-
-window.d3 = d3;
-
     xScale.domain(d3.extent(dataset, d => new Date(d.date) ));
     yScale.domain([0, d3.max(dataset, d => d.positive)]);
 
@@ -81,7 +130,7 @@ window.d3 = d3;
         .ticks(4)
         .tickFormat(d3.timeFormat('%b %d') );
     const yAxis = d3.axisLeft(yScale)
-        .ticks(8)
+        .ticks(4)
         .tickFormat( d => d );
 
     xAxisGroup.call(xAxis);
@@ -90,6 +139,8 @@ window.d3 = d3;
     xAxisGroup.selectAll('text')
         .attr('transform', 'rotate(-40)')
         .attr('text-anchor', 'end');
+
+    window.addEventListener('resize', handlerResize);
 };
 
 const handlerOnDestroy = () => {};

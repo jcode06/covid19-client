@@ -3,6 +3,11 @@ import { onMount, onDestroy } from 'svelte';
 import axios from 'axios';
 import moment from 'moment';
 
+// set up fastdom to help with layout thrashing
+import fastdom from 'fastDom';
+import fastdomPromised from '../lib/fastdom-promised.js';
+const myFastdom = fastdom.extend(fastdomPromised);
+
 import LineChart from '../components/LineChart.svelte';
 import DatesTable from '../components/DatesTable.svelte';
 import { addSpacesToWord } from '../lib/helpers.js';
@@ -26,7 +31,11 @@ $: {
                 !['positiveIncrease', 'deathIncrease', 
                 'totalTestResultsIncrease', 'state'].includes(header) )
             .map(setupHeaders);
-        formattedData = { headers, data: newData };
+
+        myFastdom.mutate( () => {
+            console.log('[State.svelte - mutate] formattedData updating...');
+            formattedData = { headers, data: newData };
+        });
     }
 };
 
@@ -105,10 +114,13 @@ const handlerOnMount = async () => {
 		console.error('Error loading covid19 data', e);
 	}
 
-    covidData = (response && response.data) ? response.data.Items : [];
-    
-    console.log(`covidResponse-${state}`, covidData);
-}
+    myFastdom.mutate( () => {
+        console.log('[State.svelte - handlerOnMount] covidData updating...');
+        covidData = (response && response.data) ? response.data.Items : [];
+
+        console.log(`covidResponse-${state}`, covidData);
+    });
+};
 
 onMount(handlerOnMount);
 </script>

@@ -3,7 +3,7 @@ import { onMount, onDestroy } from 'svelte';
 import axios from 'axios';
 import moment from 'moment';
 
-import Chart from '../components/Chart.svelte';
+import LineChart from '../components/LineChart.svelte';
 import DatesTable from '../components/DatesTable.svelte';
 import { addSpacesToWord } from '../lib/helpers.js';
 
@@ -121,7 +121,11 @@ onMount(handlerOnMount);
     }
 </style>
 
+<svelte:head>
+    <title>CV Totals for {state}</title>
+</svelte:head>
+
 <h1>Covid Data for <span>{state}</span></h1>
 <a href="#">Home</a>
-<Chart dataset={formattedData} />
+<LineChart dataset={formattedData.data} />
 <DatesTable {params} {state} dataset={formattedData} />

@@ -111,5 +111,9 @@ onMount(handlerOnMount);
     }
 </style>
 
+<svelte:head>
+    <title>CV Totals for the US</title>
+</svelte:head>
+
 <h1>Covid Data for <span>{ moment(dateString).format('MM/DD/YYYY')}</span></h1>
 <TodayTable {params} dataset={formattedData} />

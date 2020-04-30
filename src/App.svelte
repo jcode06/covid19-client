@@ -3,13 +3,10 @@ import { onMount, onDestroy } from 'svelte';
 import Router from 'svelte-spa-router';
 import moment from 'moment';
 
-
 import Header from './components/Header.svelte';
 import Total from './pages/Total.svelte';
 import State from './pages/State.svelte';
 
-
-let state = 'NY';
 
 const routes = {
 	'/': Total,
@@ -17,6 +14,7 @@ const routes = {
 	'/state/:state': State,
 	'/state/:state/sort/:sort?/:dir?': State
 };
+
 
 const handlerOnMount = async () => {
 }
@@ -30,12 +28,11 @@ onMount(handlerOnMount);
 		text-align: center;
 		padding: 0;
 		margin: 0 auto;
-		max-width: 360px;
+		// max-width: 360px;
 	}
 
 	@media (min-width: 640px) {
 		main {
-			padding: 0 1em;
 			max-width: none;
 		}
 	}

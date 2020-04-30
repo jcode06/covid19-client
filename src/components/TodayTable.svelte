@@ -64,8 +64,8 @@
 </script>
 
 <style type="text/scss">
-    $header-color: #ffc72a;
-    $alternate-color: #fff4c9;
+    $header-color: #b9dfff;
+    $alternate-color: #fdf2e0;
 
     section.table-container { 
         width: 100%;

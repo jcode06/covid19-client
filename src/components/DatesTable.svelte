@@ -68,12 +68,12 @@
 </script>
 
 <style type="text/scss">
-    $header-color: #ffc72a;
-    $alternate-color: #fff4c9;
+    $header-color: #b9dfff;
+    $alternate-color: #fdf2e0;
 
     section.table-container { 
         width: 100%;
-        height: 45vh;        
+        height: 50vh;        
         overflow: auto;
         border: solid 1px $header-color; 
         
@@ -121,7 +121,7 @@
 
 	@media (min-width: 640px) {
         section.table-container { 
-            height: 80vh;        
+            height: 85vh;        
         }
 	}
 </style>

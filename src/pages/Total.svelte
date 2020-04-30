@@ -5,6 +5,7 @@ import moment from 'moment';
 
 import TodayTable from '../components/TodayTable.svelte';
 import { addSpacesToWord } from '../lib/helpers.js';
+import { currentPage, pageTitle } from '../stores.js';
 
 export let params;
 //export let dateString;
@@ -86,6 +87,9 @@ const setupHeaders =  header => {
 const handlerOnMount = async () => {
 	let response;
 
+    pageTitle.set('Totals');
+    currentPage.set('total');
+
 	try {
 		response = JSON.parse( localStorage.getItem('covidResponse') );
 		if(typeof response === 'undefined' || !response) { 
@@ -102,15 +106,6 @@ const handlerOnMount = async () => {
 };
 onMount(handlerOnMount);
 </script>
-
-<style type="text/scss">
-    h1 {
-        margin: 0.5rem 0 1rem;
-        color: #ff3e00;
-        font-size: 2.5em;
-        font-weight: 100;
-    }
-</style>
 
 <svelte:head>
     <title>CV Totals for the US</title>

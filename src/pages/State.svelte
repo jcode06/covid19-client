@@ -6,6 +6,7 @@ import moment from 'moment';
 import LineChart from '../components/LineChart.svelte';
 import DatesTable from '../components/DatesTable.svelte';
 import { addSpacesToWord } from '../lib/helpers.js';
+import { currentPage, pageTitle } from '../stores.js';
 
 export let params;
 export let state;
@@ -94,7 +95,10 @@ const setupHeaders =  header => {
 };
 
 const handlerOnMount = async () => {
-	let response;
+    let response;
+
+    pageTitle.set(state);
+    currentPage.set('state');
 
 	try {
 		response = JSON.parse( localStorage.getItem(`covidResponse-${state}`) );
@@ -117,13 +121,6 @@ const handlerOnMount = async () => {
 onMount(handlerOnMount);
 </script>
 <style type="text/scss">
-    h1 {
-        margin: 0.5rem 0 1rem;
-        color: #ff3e00;
-        font-size: 2.5em;
-        font-weight: 100;
-    }
-
 	@media (min-width: 640px) {
 		.content {
 			display: flex;
@@ -136,7 +133,7 @@ onMount(handlerOnMount);
     <title>CV Totals for {state}</title>
 </svelte:head>
 
-<h1>Covid Data for <span>{state}</span></h1>
+<!-- <h1>Covid Data for <span>{state}</span></h1> -->
 
 <section class="content">
     <LineChart dataset={formattedData.data} />

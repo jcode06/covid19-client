@@ -12,7 +12,7 @@ body {
 	padding: 0;
 	box-sizing: border-box;
 	font-size: 12px;
-	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	font-family: Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 }
 a {
 	color: rgb(0,100,200);
@@ -31,6 +31,14 @@ a:visited {
 		font-size: 16px;
 	}
 }
+
+h1 {
+	margin: 0.5rem 0;
+	color: #ff3e00;
+	font-size: 2.25em;
+	font-weight: 100;
+}
+
 /*
 
 

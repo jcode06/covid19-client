@@ -9,6 +9,7 @@ import { addSpacesToWord } from '../lib/helpers.js';
 
 export let params;
 export let state;
+
 $: state = state || params.state;
 
 const API_ENDPOINT = 'https://johnpangilinan-covid19-api.herokuapp.com/api/';
@@ -136,7 +137,7 @@ onMount(handlerOnMount);
 </svelte:head>
 
 <h1>Covid Data for <span>{state}</span></h1>
-<a href="#">Home</a>
+
 <section class="content">
     <LineChart dataset={formattedData.data} />
     <DatesTable {params} {state} dataset={formattedData} />

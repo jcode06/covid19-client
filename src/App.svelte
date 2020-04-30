@@ -3,8 +3,11 @@ import { onMount, onDestroy } from 'svelte';
 import Router from 'svelte-spa-router';
 import moment from 'moment';
 
+
+import Header from './components/Header.svelte';
 import Total from './pages/Total.svelte';
 import State from './pages/State.svelte';
+
 
 let state = 'NY';
 
@@ -39,6 +42,7 @@ onMount(handlerOnMount);
 </style>
 
 <main>
+	<Header />
 	<Router {routes} />
 </main>
 

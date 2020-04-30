@@ -2,22 +2,14 @@
 import { onMount, onDestroy } from 'svelte';
 import * as d3 from 'd3';
 
-// set up fastdom to help with layout thrashing
-import fastdom from 'fastDom';
-import fastdomPromised from '../lib/fastdom-promised.js';
-const myFastdom = fastdom.extend(fastdomPromised);
-
 export let dataset = [];
-export let scalePercentage = 1.00;
-export let aspectRatio = 1/1; // default to 16:9 widescreen format
+let aspectRatio = 1/1; // default to 16:9 widescreen format
 
 // Just update the graph whenever the dataset may change
 $: {
     if(dataset && dataset.length > 0) {
-        myFastdom.mutate( () => {
-            console.log('[LineChart.svelte - mutate] updating...');
-            update();
-        });
+        console.log('[LineChart.svelte - mutate] updating...');
+        update();
     }
 }
 
@@ -32,8 +24,6 @@ let container,
     xAxisGroup, yAxisGroup,
     posLine, posPath,
     deathLine, deathPath;
-
-
 
 const initialize = () => {
 
@@ -58,8 +48,10 @@ const initialize = () => {
 const setSizesAndScales = () => {
     // set the sizes and scales for different elements
     // can be rerun on page resize
-    let width = container.clientWidth * scalePercentage;
-    let height = width / aspectRatio;
+    aspectRatio = (document.body.clientWidth <= 640) ? 16/9 : 1/1;
+
+    let width = container.clientWidth;
+    let height = (document.body.clientWidth <= 640) ? width / aspectRatio : container.clientHeight;
 
     margin = { top: 40, right: 20, bottom: 50, left: 50 };
     graphWidth = width - margin.left - margin.right;
@@ -93,25 +85,17 @@ const setSizesAndScales = () => {
 };
 
 const handlerOnMount = async () => {
-    await myFastdom.mutate( () => {
-        initialize();
-        setSizesAndScales();
-
-        console.log('[LineChart.svelte - mutate] initializing...');
-    });
+    initialize();
+    setSizesAndScales();
 
     console.log('[LineChart.svelte - handlerOnMount] finished...');
 };
 
 const handlerResize = () => {
+    setSizesAndScales();
+    update();
 
-    myFastdom.mutate( () => {
-        setSizesAndScales();
-        update();
-
-        console.log('[LineChart.svelte - handlerResize] resizing...');
-    });
-
+    console.log('[LineChart.svelte - handlerResize] resizing...');
 };
 
 const update = () => {
@@ -162,20 +146,23 @@ onDestroy(handlerOnDestroy);
         position: sticky;
         top: 0;
         z-index: 1000;
-        width: 240px;
+        width: 100%;
+        min-width: 240px;
+        min-height: 240px;
         
         margin: 0 auto;
-        padding-bottom: 1rem; 
         vertical-align: middle; 
         overflow: hidden; 
         background-color: #eee;
-    }
 
-    .svg-content { 
-        display: inline-block;
-        position: absolute;
-        top: 0;
-        left: 0;
+        .svg-content { 
+            display: inline-block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }        
     }
 
     @media (min-width: 640px) {

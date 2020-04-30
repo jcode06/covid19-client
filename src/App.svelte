@@ -20,7 +20,8 @@ const handlerOnMount = async () => {
 
 onMount(handlerOnMount);
 </script>
-<style type="text/scss">
+<style type="text/scss" global>
+	@import "./styles/global.scss";
 
 	main {
 		text-align: center;

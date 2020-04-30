@@ -155,36 +155,34 @@ onDestroy(handlerOnDestroy);
 </script>
 
 <style type="text/scss">
-.svg-container { 
-    display: flex;
-    align-items: center; 
+    .svg-container { 
+        display: flex;
+        align-items: center; 
 
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    width: 100%;
-    min-width: 320px;
-
-    padding-bottom: 1rem; 
-	vertical-align: middle; 
-    overflow: hidden; 
-    background-color: #eee;
-}
-
-.svg-content { 
-	display: inline-block;
-	position: absolute;
-	top: 0;
-	left: 0;
-}
-
-@media (min-width: 640px) {
-    .svg-container {
-        position: relative;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        width: 240px;
+        
+        margin: 0 auto;
+        padding-bottom: 1rem; 
+        vertical-align: middle; 
+        overflow: hidden; 
+        background-color: #eee;
     }
-}
 
+    .svg-content { 
+        display: inline-block;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
 
+    @media (min-width: 640px) {
+        .svg-container {
+            position: relative;
+        }
+    }
 </style>
 
 <div class="svg-container"></div>

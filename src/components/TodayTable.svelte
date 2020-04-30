@@ -64,11 +64,14 @@
 </script>
 
 <style type="text/scss">
+    $header-color: #ffc72a;
+    $alternate-color: #fff4c9;
+
     section.table-container { 
         width: 100%;
         height: 90vh;        
         overflow: auto;
-        border: solid 1px #ffc72a; 
+        border: solid 1px $header-color; 
         
         table { 
             width: 100%;
@@ -78,7 +81,7 @@
 
             thead {
                 tr th { 
-                    background-color: #ffc72a; 
+                    background-color: $header-color; 
                     position: sticky;
                     top: 0;
                     z-index: 100;        
@@ -103,7 +106,7 @@
         }
     }
 
-    .alternate { background-color: #fff4c9; }
+    .alternate { background-color: $alternate-color; }
 
     .positive { 
         text-align: right;

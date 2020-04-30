@@ -53,7 +53,8 @@ const setSizesAndScales = () => {
 console.log(aspectRatio);
 
     let width = container.clientWidth;
-    let height = (document.body.clientWidth <= 640) ? width / aspectRatio : container.clientHeight;
+    // let height = (document.body.clientWidth <= 640) ? width / aspectRatio : container.clientHeight;
+    let height = container.clientHeight;
 
 console.log(width, height);
 
@@ -153,7 +154,7 @@ onDestroy(handlerOnDestroy);
         z-index: 1000;
         width: 100%;
         min-width: 240px;
-        min-height: 240px;
+        min-height: 200px;
         
         margin: 0 auto;
         vertical-align: middle; 

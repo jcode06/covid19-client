@@ -129,14 +129,19 @@ onMount(handlerOnMount);
         display: flex;
         flex-direction: column; 
     }
-    .chartsAndData { 
+    .charts { 
         display: flex;
         flex-direction: column;
+        max-height: 40vh;
     }
 
 	@media (min-width: 640px) {
-        .chartsAndData { 
+        .content {
             flex-direction: row;
+        }
+        .charts { 
+            max-width: 50%;
+            max-height: initial;
         }
     }
 </style>
@@ -148,14 +153,14 @@ onMount(handlerOnMount);
 <!-- <h1>Covid Data for <span>{state}</span></h1> -->
 
 <section class="content">
-    <TabBar tabs={['Positives and Deaths', 'Positives', 'Deaths']} let:tab bind:active>
-        <!-- Notice that the `tab` property is required! -->
-        <Tab {tab}>
-            <Label>{tab}</Label>
-        </Tab>
-    </TabBar>
-    <section class="chartsAndData">
+    <section class="charts">
+        <TabBar tabs={['Confirmeds and Mortalities', 'Confirmeds', 'Mortalities']} let:tab bind:active>
+            <!-- Notice that the `tab` property is required! -->
+            <Tab {tab}>
+                <Label>{tab}</Label>
+            </Tab>
+        </TabBar>
         <LineChart dataset={formattedData.data} />
-        <DatesTable {params} {state} dataset={formattedData} />
     </section>
+    <DatesTable {params} {state} dataset={formattedData} />
 </section>

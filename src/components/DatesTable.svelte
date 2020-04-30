@@ -74,7 +74,7 @@
 
     section.table-container { 
         width: 100%;
-        height: 45vh;        
+        height: 50vh;        
         overflow: auto;
         border: solid 1px $header-color; 
         

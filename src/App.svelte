@@ -1,11 +1,11 @@
 <script>	
 import { onMount, onDestroy } from 'svelte';
 import Router from 'svelte-spa-router';
+import moment from 'moment';
 
 import Total from './pages/Total.svelte';
 import State from './pages/State.svelte';
 
-let dateString = '20200427';
 let state = 'NY';
 
 const routes = {

@@ -131,6 +131,13 @@ onMount(handlerOnMount);
         font-size: 2.5em;
         font-weight: 100;
     }
+
+	@media (min-width: 640px) {
+		.content {
+			display: flex;
+			flex-direction: row; 
+		}
+	}
 </style>
 
 <svelte:head>
@@ -139,5 +146,7 @@ onMount(handlerOnMount);
 
 <h1>Covid Data for <span>{state}</span></h1>
 <a href="#">Home</a>
-<LineChart dataset={formattedData.data} />
-<DatesTable {params} {state} dataset={formattedData} />
+<section class="content">
+    <LineChart dataset={formattedData.data} />
+    <DatesTable {params} {state} dataset={formattedData} />
+</section>

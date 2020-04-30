@@ -9,7 +9,7 @@ const myFastdom = fastdom.extend(fastdomPromised);
 
 export let dataset = [];
 export let scalePercentage = 1.00;
-export let aspectRatio = 16/9; // default to 16:9 widescreen format
+export let aspectRatio = 1/1; // default to 16:9 widescreen format
 
 // Just update the graph whenever the dataset may change
 $: {
@@ -33,19 +33,22 @@ let container,
     posLine, posPath,
     deathLine, deathPath;
 
+
+
 const initialize = () => {
 
     // create references to the different DOM elements
-    container = document.querySelector('.canvas');
+    container = document.querySelector('.svg-container');
 
     // Initialize canvas and graph
-    svg = d3.select('.canvas')
+    svg = d3.select('.svg-container')
         .append('svg')
+        .attr('class', 'svg-content')
+        .attr('preserveAspectRatio', 'xMinYMin meet');
 
     graph = svg.append('g');
 
     xAxisGroup = graph.append('g').attr('class', 'x-axis');
-
     yAxisGroup = graph.append('g').attr('class', 'y-axis');
 
     posPath = graph.append('path');
@@ -65,7 +68,8 @@ const setSizesAndScales = () => {
     // Initialize canvas & group dimensions
     svg 
         .attr('width', graphWidth + margin.left + margin.right)
-        .attr('height', graphHeight + margin.top + margin.bottom);
+        .attr('height', graphHeight + margin.top + margin.bottom)
+        .attr('viewBox', `0 0 ${graphWidth + margin.left + margin.right} ${graphHeight + margin.top + margin.bottom}`);
 
     graph
         .attr('width', graphWidth)
@@ -140,7 +144,7 @@ const update = () => {
         .attr('transform', 'rotate(-40)')
         .attr('text-anchor', 'end');
 
-    window.addEventListener('resize', handlerResize);
+   window.addEventListener('resize', handlerResize);
 };
 
 const handlerOnDestroy = () => {};
@@ -151,7 +155,36 @@ onDestroy(handlerOnDestroy);
 </script>
 
 <style>
+.svg-container { 
+    display: flex;
+    align-items: center; 
+    
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: 100%;
+    min-width: 320px;
+
+    padding-bottom: 1rem; 
+	vertical-align: middle; 
+    overflow: hidden; 
+    background-color: #eee;
+}
+
+.svg-content { 
+	display: inline-block;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+@media (min-width: 640px) {
+    .svg-container {
+        position: relative;
+    }
+}
+
 
 </style>
 
-<div class="canvas"></div>
+<div class="svg-container"></div>

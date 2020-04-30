@@ -77,8 +77,9 @@
 </script>
 
 <style>
-    section.table { 
+    section.table-container { 
         width: 100%;
+        height: 60vh;        
         overflow: auto;
         border: solid 1px #ffc72a; 
     }
@@ -86,8 +87,6 @@
         width: 95%;
         margin: 0 auto;
         border-collapse: collapse; 
-        height: 65  vh;
-        /* display: grid; */
         overflow: auto;    
     }
 
@@ -95,7 +94,7 @@
         background-color: #ffc72a; 
         position: sticky;
         top: 0;
-        z-index: 100;        
+        z-index: 99;        
     }
     thead tr th:hover { cursor: pointer; }
 
@@ -113,7 +112,6 @@
         width: 10vh;
     }
 
-
     .alternate { background-color: #fff4c9; }
 
     .positive { 
@@ -122,9 +120,15 @@
     }
     .death { color: red; }
     .daily { display: block; font-size: 0.8rem; }
+
+	@media (min-width: 640px) {
+        section.table-container { 
+            height: 80vh;        
+        }
+	}
 </style>
 
-<section class="table">
+<section class="table-container">
     <table>
         <thead on:click={handlerHeaderClick}>
         <tr>

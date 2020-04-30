@@ -7,7 +7,8 @@ import TodayTable from '../components/TodayTable.svelte';
 import { addSpacesToWord } from '../lib/helpers.js';
 
 export let params;
-export let dateString;
+//export let dateString;
+let dateString = moment().subtract(1, 'days').format('YYYYMMDD');
 
 const API_ENDPOINT = 'https://johnpangilinan-covid19-api.herokuapp.com/api/';
 

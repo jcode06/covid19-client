@@ -50,8 +50,12 @@ const setSizesAndScales = () => {
     // can be rerun on page resize
     aspectRatio = (document.body.clientWidth <= 640) ? 16/9 : 1/1;
 
+console.log(aspectRatio);
+
     let width = container.clientWidth;
     let height = (document.body.clientWidth <= 640) ? width / aspectRatio : container.clientHeight;
+
+console.log(width, height);
 
     margin = { top: 40, right: 20, bottom: 50, left: 50 };
     graphWidth = width - margin.left - margin.right;
@@ -140,6 +144,7 @@ onDestroy(handlerOnDestroy);
 
 <style type="text/scss">
     .svg-container { 
+        flex-basis: 90%;
         display: flex;
         align-items: center; 
 
@@ -153,7 +158,7 @@ onDestroy(handlerOnDestroy);
         margin: 0 auto;
         vertical-align: middle; 
         overflow: hidden; 
-        background-color: #eee;
+        background-color: #f9f9f9;
 
         .svg-content { 
             display: inline-block;

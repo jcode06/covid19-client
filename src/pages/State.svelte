@@ -2,6 +2,8 @@
 import { onMount, onDestroy } from 'svelte';
 import axios from 'axios';
 import moment from 'moment';
+import Tab, {Icon, Label} from '@smui/tab';
+import TabBar from '@smui/tab-bar';
 
 import LineChart from '../components/LineChart.svelte';
 import DatesTable from '../components/DatesTable.svelte';
@@ -10,6 +12,8 @@ import { currentPage, pageTitle } from '../stores.js';
 
 export let params;
 export let state;
+
+let active = '';
 
 $: state = state || params.state;
 
@@ -121,12 +125,20 @@ const handlerOnMount = async () => {
 onMount(handlerOnMount);
 </script>
 <style type="text/scss">
+    .content {
+        display: flex;
+        flex-direction: column; 
+    }
+    .chartsAndData { 
+        display: flex;
+        flex-direction: column;
+    }
+
 	@media (min-width: 640px) {
-		.content {
-			display: flex;
-			flex-direction: row; 
-		}
-	}
+        .chartsAndData { 
+            flex-direction: row;
+        }
+    }
 </style>
 
 <svelte:head>
@@ -136,6 +148,14 @@ onMount(handlerOnMount);
 <!-- <h1>Covid Data for <span>{state}</span></h1> -->
 
 <section class="content">
-    <LineChart dataset={formattedData.data} />
-    <DatesTable {params} {state} dataset={formattedData} />
+    <TabBar tabs={['Positives and Deaths', 'Positives', 'Deaths']} let:tab bind:active>
+        <!-- Notice that the `tab` property is required! -->
+        <Tab {tab}>
+            <Label>{tab}</Label>
+        </Tab>
+    </TabBar>
+    <section class="chartsAndData">
+        <LineChart dataset={formattedData.data} />
+        <DatesTable {params} {state} dataset={formattedData} />
+    </section>
 </section>

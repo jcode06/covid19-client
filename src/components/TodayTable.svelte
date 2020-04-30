@@ -2,6 +2,9 @@
     import { onMount, onDestroy } from 'svelte';
     import { push } from 'svelte-spa-router';
 
+    import DataTable, {Head, Body, Row, Cell} from '@smui/data-table';
+
+
     export let params;
     export let dataset = {};
 
@@ -65,7 +68,6 @@
 
 <style type="text/scss">
     $header-color: #b9dfff;
-    $alternate-color: #fdf2e0;
 
     section.table-container { 
         width: 100%;
@@ -73,77 +75,37 @@
         overflow: auto;
         border: solid 1px $header-color; 
         
-        table { 
-            width: 100%;
-            margin: 0 auto;
-            border-collapse: collapse; 
-            overflow: auto;    
-
-            thead {
-                tr th { 
-                    background-color: $header-color; 
-                    position: sticky;
-                    top: 0;
-                    z-index: 100;        
-                }
-                tr th:hover { cursor: pointer; }
-            }
-
-            thead tr th,
-            tbody tr td { 
-                text-align: left; 
-                padding: 10px 5px;
-
-            }
-            tbody {
-                flex-direction: column;
-                padding-top: 1rem; 
-
-                td { 
-                    width: 10vh;
-                }
-            }
-        }
     }
-
-    .alternate { background-color: $alternate-color; }
-
-    .positive { 
-        text-align: right;
-        color: green; 
-    }
-    .death { color: red; }
-    .daily { display: block; font-size: 0.8rem; }
 </style>
 
 <section class="table-container">
-    <table>
-        <thead on:click={handlerHeaderClick}>
-        <tr>
+    <DataTable>
+        <Head>
+            <Row on:click={handlerHeaderClick}>
             {#each headers as header, index} 
-                <th data-index={index} data-sort={header.data} class={header.data} >{header.label}</th>
+                <Cell data-index={index} data-sort={header.data} class={header.data} >{header.label}</Cell>
             {/each}
-        </tr>
-        </thead>
-        <tbody>
+            </Row>
+        </Head>
+        <Body>
         {#each tableData as row, index}
-            <tr class:alternate={index % 2 === 0}>
-                <td><a href="#/state/{row.state}">{row.state}</a></td>
-                <td class="positive">{row.positive} <span class="daily">({row.positiveIncrease})</span></td>
-                <td class="death">{row.death} <span class="daily">({row.deathIncrease})</span></td>
+            <Row>
+                <Cell><a href="#/state/{row.state}">{row.state}</a></Cell>
+                <Cell class="positive">{row.positive} <span class="daily">({row.positiveIncrease})</span></Cell>
+                <Cell class="death">{row.death} <span class="daily">({row.deathIncrease})</span></Cell>
 
-                <td>{row.totalTestResults} <span class="daily">(+{row.totalTestResultsIncrease})</span></td>
+                <Cell>{row.totalTestResults} <span class="daily">(+{row.totalTestResultsIncrease})</span></Cell>
 
-                <td class="positive">{row.posPercentage}%</td>
-                <td class="death">{row.deathPercentage}%</td>
+                <Cell class="positive">{row.posPercentage}%</Cell>
+                <Cell class="death">{row.deathPercentage}%</Cell>
 
-                <td>{row.hospitalizedCurrently}</td>
-                <td>{row.inIcuCurrently}</td>
-                <td>{row.onVentilatorCurrently}</td>
+                <Cell>{row.hospitalizedCurrently}</Cell>
+                <Cell>{row.inIcuCurrently}</Cell>
+                <Cell>{row.onVentilatorCurrently}</Cell>
 
-                <td>{row.pending}</td>
-            </tr>
+                <Cell>{row.pending}</Cell>
+            </Row>
         {/each}
-        </tbody>
-    </table>
+        </Body>
+    </DataTable>
 </section>

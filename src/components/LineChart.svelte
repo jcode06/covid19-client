@@ -154,11 +154,11 @@ onDestroy(handlerOnDestroy);
 
 </script>
 
-<style>
+<style type="text/scss">
 .svg-container { 
     display: flex;
     align-items: center; 
-    
+
     position: sticky;
     top: 0;
     z-index: 100;

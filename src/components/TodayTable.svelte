@@ -63,43 +63,45 @@
     onMount(handlerOnMount);
 </script>
 
-<style>
+<style type="text/scss">
     section.table-container { 
         width: 100%;
         height: 90vh;        
         overflow: auto;
         border: solid 1px #ffc72a; 
+        
+        table { 
+            width: 100%;
+            margin: 0 auto;
+            border-collapse: collapse; 
+            overflow: auto;    
 
-    }
-    table { 
-        width: 100%;
-        margin: 0 auto;
-        border-collapse: collapse; 
-        overflow: auto;    
-    }
+            thead {
+                tr th { 
+                    background-color: #ffc72a; 
+                    position: sticky;
+                    top: 0;
+                    z-index: 100;        
+                }
+                tr th:hover { cursor: pointer; }
+            }
 
-    thead tr th { 
-        background-color: #ffc72a; 
-        position: sticky;
-        top: 0;
-        z-index: 100;        
-    }
-    thead tr th:hover { cursor: pointer; }
+            thead tr th,
+            tbody tr td { 
+                text-align: left; 
+                padding: 10px 5px;
 
-    thead tr th,
-    tbody tr td { 
-        text-align: left; 
-        padding: 10px 5px;
+            }
+            tbody {
+                flex-direction: column;
+                padding-top: 1rem; 
 
+                td { 
+                    width: 10vh;
+                }
+            }
+        }
     }
-    tbody {
-        flex-direction: column;
-        padding-top: 1rem; 
-    }
-    tbody td { 
-        width: 10vh;
-    }
-
 
     .alternate { background-color: #fff4c9; }
 

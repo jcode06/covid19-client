@@ -20,7 +20,8 @@ const handlerOnMount = async () => {
 
 onMount(handlerOnMount);
 </script>
-<style>
+<style type="text/scss">
+
 	main {
 		text-align: center;
 		padding: 0;

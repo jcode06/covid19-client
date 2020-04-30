@@ -103,7 +103,7 @@ const handlerOnMount = async () => {
 onMount(handlerOnMount);
 </script>
 
-<style>
+<style type="text/scss">
     h1 {
         margin: 0.5rem 0 1rem;
         color: #ff3e00;

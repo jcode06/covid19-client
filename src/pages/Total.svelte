@@ -91,11 +91,15 @@ const handlerOnMount = async () => {
     currentPage.set('total');
 
 	try {
-		response = JSON.parse( localStorage.getItem('covidResponse') );
-		if(typeof response === 'undefined' || !response) { 
+        response = JSON.parse( localStorage.getItem('covidResponse') );
+
+        // 4 hours = 4 * 60 min * 60 sec
+        let cacheTTL = 4 * 60 * 60000;
+
+		if(typeof response === 'undefined' || !response || (Date.now() - response.timestamp > cacheTTL) ) { 
 			console.log('Fetching data from API');
 			response = await axios.get(`${API_ENDPOINT}states/${dateString}`);
-			localStorage.setItem('covidResponse', JSON.stringify({...response, dateString }) );
+			localStorage.setItem('covidResponse', JSON.stringify({...response, dateString, timestamp: Date.now() }) );
 		}
 	}
 	catch(e) {

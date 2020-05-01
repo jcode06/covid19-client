@@ -33,8 +33,8 @@ $: {
                 'totalTestResultsIncrease', 'state'].includes(header) )
             .map(setupHeaders);
 
-        console.log('[State.svelte - mutate] formattedData updating...');
         formattedData = { headers, data: newData };
+        console.log('[State.svelte - mutate] formattedData updating...', formattedData);
     }
 };
 
@@ -105,11 +105,15 @@ const handlerOnMount = async () => {
     currentPage.set('state');
 
 	try {
-		response = JSON.parse( localStorage.getItem(`covidResponse-${state}`) );
-		if(typeof response === 'undefined' || !response) { 
+        response = JSON.parse( localStorage.getItem(`covidResponse-${state}`) );
+        
+        // 4 hours = 4 * 60 min * 60 sec
+        let cacheTTL = 4 * 60 * 60000;
+        
+		if(typeof response === 'undefined' || !response || (Date.now() - response.timestamp > cacheTTL) ) { 
 			console.log('Fetching data from API');
 			response = await axios.get(`${API_ENDPOINT}state/${state}`);
-			localStorage.setItem(`covidResponse-${state}`, JSON.stringify({...response}) );
+			localStorage.setItem(`covidResponse-${state}`, JSON.stringify({...response, timestamp: Date.now() }) );
 		}
 	}
 	catch(e) {

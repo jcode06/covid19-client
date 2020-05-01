@@ -15,9 +15,7 @@ const routes = {
 	'/state/:state/sort/:sort?/:dir?': State
 };
 
-
-const handlerOnMount = async () => {
-}
+const handlerOnMount = async () => {};
 
 onMount(handlerOnMount);
 </script>

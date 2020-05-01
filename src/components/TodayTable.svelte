@@ -1,13 +1,10 @@
 <script>
-    import { onMount, onDestroy } from 'svelte';
     import { push } from 'svelte-spa-router';
 
     import DataTable, {Head, Body, Row, Cell} from '@smui/data-table';
 
-
     export let params;
     export let dataset = {};
-
 
     let activeColumn = '';
     let curDir = '';
@@ -61,9 +58,6 @@
         push(`/sort/${activeColumn}/${curDir}`);
     };
 
-    const handlerOnMount = async () => {};
-
-    onMount(handlerOnMount);
 </script>
 
 <style type="text/scss">

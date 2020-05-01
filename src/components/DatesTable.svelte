@@ -1,5 +1,4 @@
 <script>
-    import { onMount, onDestroy } from 'svelte';
     import { push } from 'svelte-spa-router';
 
     import DataTable, {Head, Body, Row, Cell} from '@smui/data-table';
@@ -64,9 +63,6 @@
         
         push(`/state/${curState}/sort/${activeColumn}/${curDir}`);
     };
-
-    const handlerOnMount = async () => {};
-    onMount(handlerOnMount);
 </script>
 
 <style type="text/scss">

@@ -8,7 +8,7 @@ let aspectRatio = 1/1; // default to 16:9 widescreen format
 // Just update the graph whenever the dataset may change
 $: {
     if(dataset && dataset.length > 0) {
-        console.log('[LineChart.svelte - mutate] updating...');
+        console.log('[LineChart.svelte - mutate] updating...', dataset);
         update();
     }
 }
@@ -133,7 +133,7 @@ const update = () => {
         .attr('transform', 'rotate(-40)')
         .attr('text-anchor', 'end');
 
-   window.addEventListener('resize', handlerResize);
+   window.addEventListener('resize', handlerResize, {passive: true});
 };
 
 const handlerOnDestroy = () => {};

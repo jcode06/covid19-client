@@ -2,6 +2,67 @@ import axios from 'axios';
 import moment from 'moment';
 import { addSpacesToWord } from './lib/helpers.js';
 
+const statesList = {
+    "AL": "Alabama",
+    "AK": "Alaska",
+    "AS": "American Samoa",
+    "AZ": "Arizona",
+    "AR": "Arkansas",
+    "CA": "California",
+    "CO": "Colorado",
+    "CT": "Connecticut",
+    "DE": "Delaware",
+    "DC": "District Of Columbia",
+    "FM": "Federated States Of Micronesia",
+    "FL": "Florida",
+    "GA": "Georgia",
+    "GU": "Guam",
+    "HI": "Hawaii",
+    "ID": "Idaho",
+    "IL": "Illinois",
+    "IN": "Indiana",
+    "IA": "Iowa",
+    "KS": "Kansas",
+    "KY": "Kentucky",
+    "LA": "Louisiana",
+    "ME": "Maine",
+    "MH": "Marshall Islands",
+    "MD": "Maryland",
+    "MA": "Massachusetts",
+    "MI": "Michigan",
+    "MN": "Minnesota",
+    "MS": "Mississippi",
+    "MO": "Missouri",
+    "MT": "Montana",
+    "NE": "Nebraska",
+    "NV": "Nevada",
+    "NH": "New Hampshire",
+    "NJ": "New Jersey",
+    "NM": "New Mexico",
+    "NY": "New York",
+    "NC": "North Carolina",
+    "ND": "North Dakota",
+    "MP": "Northern Mariana Islands",
+    "OH": "Ohio",
+    "OK": "Oklahoma",
+    "OR": "Oregon",
+    "PW": "Palau",
+    "PA": "Pennsylvania",
+    "PR": "Puerto Rico",
+    "RI": "Rhode Island",
+    "SC": "South Carolina",
+    "SD": "South Dakota",
+    "TN": "Tennessee",
+    "TX": "Texas",
+    "UT": "Utah",
+    "VT": "Vermont",
+    "VI": "Virgin Islands",
+    "VA": "Virginia",
+    "WA": "Washington",
+    "WV": "West Virginia",
+    "WI": "Wisconsin",
+    "WY": "Wyoming"
+};
 
 const setupHeaders =  header => {
     let className = '';
@@ -45,6 +106,7 @@ const mapCovidDataTotal = row => {
         parseFloat((death/positive*100).toFixed(1)) : 'N/A';
     return {
         state,
+        stateName: statesList[state],
         positive, death,
         positiveIncrease, deathIncrease,
         totalTestResults, totalTestResultsIncrease,
@@ -97,7 +159,7 @@ const model = () => {
         let headers = [];
         let response = [];
         let formatFunc = null;
-        let headerFilterList = [];
+        let headeExclusionList = [];
         let formattedJson = {};
 
         switch(type) {
@@ -105,13 +167,13 @@ const model = () => {
                 url += `states/${dateString}`;
                 localStore = 'covidResponse';
                 formatFunc = mapCovidDataTotal;
-                headerFilterList = ['positiveIncrease', 'deathIncrease', 'totalTestResultsIncrease'];
+                headeExclusionList = ['positiveIncrease', 'deathIncrease', 'totalTestResultsIncrease', 'stateName'];
                 break;
             case 'state':
                 url += `state/${state}`;
                 localStore = `covidResponse-${state}`;
                 formatFunc = mapCovidDataState;
-                headerFilterList = ['positiveIncrease', 'deathIncrease', 'totalTestResultsIncrease', 'state', 'country'];
+                headeExclusionList = ['positiveIncrease', 'deathIncrease', 'totalTestResultsIncrease', 'stateName', 'state', 'country'];
                 break;
 
             default: 
@@ -130,8 +192,8 @@ const model = () => {
                 headers = Object.keys(response.data.Items[0]);
 
                 response.data.Headers = headers
-                    .filter( header => !headerFilterList.includes(header) )
-                    .map(setupHeaders);;
+                    .filter( header => !headeExclusionList.includes(header) )
+                    .map(setupHeaders);
 
                 localStorage.setItem(localStore, JSON.stringify({...response, timestamp: Date.now() }) );
             }
@@ -139,13 +201,16 @@ const model = () => {
         catch(e) {
             console.error('Error loading covid19 data', e);
         }    
-        return (response && response.data ) ? { headers: response.data.Headers, data: response.data.Items } : []; 
+        return (response && response.data ) ? { headers: response.data.Headers, data: response.data.Items } : { headers: [], data: [] }; 
     };
+
+    const getStates = () => statesList;
 
     const setCacheTTL = hours => cacheTTL = hours * 60 * 60000;
 
     return { 
         get,
+        getStates,
         setCacheTTL
     };
 };

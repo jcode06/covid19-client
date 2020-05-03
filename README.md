@@ -8,6 +8,8 @@ https://developers.google.com/web/fundamentals/primers/service-workers
 Svelte D3 Example
 https://svelte.dev/repl/01a5774b53e9416584428c025668407b?version=3.15.0
 
+Cloropleth Map Example
+https://observablehq.com/@d3/choropleth
 
 ---
 

@@ -23,7 +23,7 @@ onMount(handlerOnMount);
 	@import "./styles/global.scss";
 
 	main {
-		text-align: center;
+		// text-align: center;
 		padding: 0;
 		margin: 0 auto;
 		// max-width: 360px;

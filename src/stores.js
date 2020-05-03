@@ -5,5 +5,5 @@ const currentPage = writable('');
 
 export { 
     pageTitle,
-    currentPage
+    currentPage,
 };

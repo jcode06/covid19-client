@@ -16,8 +16,11 @@ export let params;
 export let state;
 
 let active = '';
+let stateName = '';
+let states = model.getStates();
 
 $: state = state || params.state;
+$: stateName = states[state];
 
 let covidData = [];
 let chartData = [];
@@ -30,7 +33,7 @@ $: chartData = (covidData && Array.isArray(covidData.data)) ?
 const handlerOnMount = async () => {
     let response;
 
-    pageTitle.set(state);
+    pageTitle.set(stateName);
     currentPage.set('state');
 
     covidData = await model.get({ type: 'state', state });
@@ -61,7 +64,7 @@ onMount(handlerOnMount);
 </style>
 
 <svelte:head>
-    <title>CV Totals for {state}</title>
+    <title>CV Totals for {stateName}</title>
 </svelte:head>
 
 <!-- <h1>Covid Data for <span>{state}</span></h1> -->

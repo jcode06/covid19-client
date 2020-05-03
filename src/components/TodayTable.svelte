@@ -65,11 +65,18 @@
 
     section.table-container { 
         width: 100%;
-        height: 90vh;        
+        height: 50vh;        
         overflow: auto;
         border: solid 1px $header-color; 
         
     }
+
+	@media (min-width: 640px) {
+        section.table-container { 
+            width: 50%;
+            height: 80vh;        
+        }
+	}    
 </style>
 
 <section class="table-container">
@@ -84,7 +91,7 @@
         <Body>
         {#each tableData as row, index}
             <Row>
-                <Cell><a href="#/state/{row.state}">{row.state}</a></Cell>
+                <Cell><a href="#/state/{row.state}">{row.stateName}</a></Cell>
                 <Cell class="positive">{row.positive} <span class="daily">({row.positiveIncrease})</span></Cell>
                 <Cell class="death">{row.death} <span class="daily">({row.deathIncrease})</span></Cell>
 

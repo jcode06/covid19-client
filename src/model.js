@@ -111,7 +111,7 @@ const model = () => {
                 url += `state/${state}`;
                 localStore = `covidResponse-${state}`;
                 formatFunc = mapCovidDataState;
-                headerFilterList = ['positiveIncrease', 'deathIncrease', 'totalTestResultsIncrease', 'state'];
+                headerFilterList = ['positiveIncrease', 'deathIncrease', 'totalTestResultsIncrease', 'state', 'country'];
                 break;
 
             default: 
@@ -128,6 +128,7 @@ const model = () => {
                 response.data.Items = response.data.Items.map(formatFunc);
                 
                 headers = Object.keys(response.data.Items[0]);
+
                 response.data.Headers = headers
                     .filter( header => !headerFilterList.includes(header) )
                     .map(setupHeaders);;

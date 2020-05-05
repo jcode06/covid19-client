@@ -17,13 +17,16 @@ let svg;
 
 $: { 
     if(dataset instanceof Map && dataset.color && dataset.values) {
-        console.log('updating');
         update(usData, dataset);
     }
 };
 
 const update = (usMapData, data) => {
-    if(!svg) { return; }
+    if(!svg || !usMapData || usMapData.length || 
+        !data || data.length <= 0) { 
+        console.error('Data may not be available', svg, usMapData, data);
+        return; 
+    }
 
     let colorScheme = d3.schemeBlues[9];
     switch(data.color) {

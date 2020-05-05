@@ -26,9 +26,47 @@ let covidData = [];
 let chartData = [];
 
 
-$: chartData = (covidData && Array.isArray(covidData.data)) ? 
+$: { 
+    chartData = (covidData && Array.isArray(covidData.data)) ? 
     covidData.data.map(row => ({ date: row.date, positive: row.positive, death: row.death })) 
     : [];
+
+    if(covidData && covidData.data) {
+
+        let yMinMax = covidData.data.reduce( (acc, cur) => {
+            let { positive, death } = cur;
+            let min = Math.min(acc.min, positive, death);
+            let max = Math.max(acc.max, positive, death);
+
+            return { min, max };
+        }, { min: 0, max: 0 });
+
+        // let data = covidData.data.map(row => ({ x: new Date(row.date), y: [row.positive, row.death] }) );
+
+        let xData = covidData.data.map(row => new Date(row.date) );
+        let yData = covidData.data.reduce( (list => (acc, cur) => {
+        for(let i=0; i < list.length; i++) {
+            if(!acc[i]) { acc[i] = []; }
+            acc[i].push(cur[list[i]]);
+        }
+        return acc;
+        })(['positive', 'death']), [])
+
+        chartData = { 
+            xData, yData,
+            // data,
+            labels: { 'x': 'date', 'y': ['positive', 'death'] },
+            colors: ['green', 'red'],
+            min: { x: xData[0], y: yMinMax.min},
+            max: { x: xData[xData.length - 1], y: yMinMax.max}
+        };
+
+
+    window.covidData = covidData;
+
+        console.log('State', covidData, chartData);
+    }
+};
 
 const handlerOnMount = async () => {
     let response;

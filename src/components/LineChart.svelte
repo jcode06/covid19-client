@@ -2,139 +2,97 @@
 import { onMount, onDestroy } from 'svelte';
 import * as d3 from 'd3';
 
-export let dataset = [];
-let aspectRatio = 1/1; // default to 16:9 widescreen format
+/*
+data should be an Object with the following structure:
+{ 
+    xData: [list of x axis data],
+    yData: [two dimensional list of y data]
+    labels: { x: 'x label', y: ['list of 1 or more y labels']},
+    min: { x: x min, y: y min of all y values },
+    max: { x: x max, y: y max of all y values }
+}
+ of key value pairs, e.g. { 'California' => 12345 }
+*/
+export let dataset = {};
 
 // Just update the graph whenever the dataset may change
 $: {
-    if(dataset && dataset.length > 0) {
+    if(dataset && dataset.xData && dataset.yData) {
         console.log('[LineChart.svelte - mutate] updating...', dataset);
-        update();
+        run();
     }
 }
 
-let margin;
-let graphWidth;
-let graphHeight;
+const run = () => {
 
-// components of the graph
-let container,
-    svg, graph,
-    xScale, yScale,
-    xAxisGroup, yAxisGroup,
-    posLine, posPath,
-    deathLine, deathPath;
+    const container = document.querySelector('.svg-container');
 
-const initialize = () => {
+    const margin = { top: 20, right: 20, bottom: 30, left: 50 };
 
-    // create references to the different DOM elements
-    container = document.querySelector('.svg-container');
+    const width = container.clientWidth,
+        height = container.clientHeight;
 
-    // Initialize canvas and graph
-    svg = d3.select('.svg-container')
-        .append('svg')
-        .attr('class', 'svg-content')
-        .attr('preserveAspectRatio', 'xMinYMin meet');
+    const xScale = d3.scaleUtc()
+        .domain([dataset.min.x, dataset.max.x])
+        .range([margin.left, width - margin.right]);
 
-    graph = svg.append('g');
+    const yScale = d3.scaleLinear()
+        .domain([dataset.min.y, dataset.max.y])
+        .range([height - margin.bottom, margin.top]);
 
-    xAxisGroup = graph.append('g').attr('class', 'x-axis');
-    yAxisGroup = graph.append('g').attr('class', 'y-axis');
+    const line = d3.line()
+        .defined(d => !isNaN(d))
+        .x( (d, i) => xScale(dataset.xData[i]) )
+        .y(d => yScale(d) );
 
-    posPath = graph.append('path');
-    deathPath = graph.append('path');
+    const xAxis = g => g
+        .attr('transform', `translate(0, ${height - margin.bottom})`)
+        .call(d3.axisBottom(xScale).ticks(width / 80).tickSizeOuter(0) );
+
+    const yAxis = g => g
+        .attr('transform', `translate(${margin.left}, 0)`)
+        .call(d3.axisLeft(yScale));
+
+    const svg = d3.select('.svg-container svg')
+        .attr('viewBox', [0, 0, width, height])
+
+    svg.selectAll('g').remove();
+
+    svg.append('g').call(xAxis);
+    svg.append('g').call(yAxis);
+
+    const path = svg.append('g')
+            .attr('fill', 'none')
+            // .attr('stroke', 'green')
+            .attr('stroke-width', 1.5)
+            .attr('stroke-linejoin', 'round')
+            .attr('stroke-linecap', 'round')
+        .selectAll('path')
+        // .data(yData)
+        .data(dataset.yData)
+        .join('path')    
+            .attr('d', d => line(d) )
+            .attr('stroke', (d, i) => dataset.colors[i] );
 };
 
-const setSizesAndScales = () => {
-    // set the sizes and scales for different elements
-    // can be rerun on page resize
-    aspectRatio = (document.body.clientWidth <= 640) ? 16/9 : 1/1;
-
-console.log(aspectRatio);
-
-    let width = container.clientWidth;
-    // let height = (document.body.clientWidth <= 640) ? width / aspectRatio : container.clientHeight;
-    let height = container.clientHeight;
-
-console.log(width, height);
-
-    margin = { top: 40, right: 20, bottom: 50, left: 50 };
-    graphWidth = width - margin.left - margin.right;
-    graphHeight = height - margin.top - margin.bottom;
-
-    // Initialize canvas & group dimensions
-    svg 
-        .attr('width', graphWidth + margin.left + margin.right)
-        .attr('height', graphHeight + margin.top + margin.bottom)
-        .attr('viewBox', `0 0 ${graphWidth + margin.left + margin.right} ${graphHeight + margin.top + margin.bottom}`);
-
-    graph
-        .attr('width', graphWidth)
-        .attr('height', graphHeight)
-        .attr('transform', `translate(${margin.left}, ${margin.top})`);
-
-    xScale = d3.scaleTime().range([0, graphWidth]);
-    yScale = d3.scaleLinear().range([graphHeight, 0]);
-
-    xAxisGroup
-        .attr('transform', `translate(0, ${graphHeight})`);
-
-    // line for total positives
-    posLine = d3.line()
-        .x( d => xScale(new Date(d.date)) )
-        .y( d => yScale(d.positive));
-
-    deathLine = d3.line()
-        .x( d => xScale(new Date(d.date)) )
-        .y( d => yScale(d.death));
-};
+window.run = run;
 
 const handlerOnMount = async () => {
-    initialize();
-    setSizesAndScales();
-
+    window.addEventListener('resize', handlerResize, {passive: true});
     console.log('[LineChart.svelte - handlerOnMount] finished...');
 };
 
+let timeout;
 const handlerResize = () => {
-    setSizesAndScales();
-    update();
+
+    if( !(dataset && dataset.xData && dataset.yData) ) { return; }
+
+    if(timeout) { clearTimeout(timeout); }
+    timeout = setTimeout( () => { run(); }, 500);
 
     console.log('[LineChart.svelte - handlerResize] resizing...');
 };
 
-const update = () => {
-    xScale.domain(d3.extent(dataset, d => new Date(d.date) ));
-    yScale.domain([0, d3.max(dataset, d => d.positive)]);
-
-    posPath.data([dataset])
-        .attr('fill', 'none')
-        .attr('stroke', 'green')
-        .attr('stroke-width', 2)
-        .attr('d', posLine);
-
-    deathPath.data([dataset])
-        .attr('fill', 'none')
-        .attr('stroke', 'red')
-        .attr('stroke-width', 2)
-        .attr('d', deathLine);
-
-    const xAxis = d3.axisBottom(xScale)
-        .ticks(4)
-        .tickFormat(d3.timeFormat('%b %d') );
-    const yAxis = d3.axisLeft(yScale)
-        .ticks(4)
-        .tickFormat( d => d );
-
-    xAxisGroup.call(xAxis);
-    yAxisGroup.call(yAxis);
-
-    xAxisGroup.selectAll('text')
-        .attr('transform', 'rotate(-40)')
-        .attr('text-anchor', 'end');
-
-   window.addEventListener('resize', handlerResize, {passive: true});
-};
 
 const handlerOnDestroy = () => {};
 
@@ -145,27 +103,11 @@ onDestroy(handlerOnDestroy);
 
 <style type="text/scss">
     .svg-container { 
-        flex-basis: 90%;
-        display: flex;
-        align-items: center; 
-
-        position: sticky;
-        top: 0;
-        z-index: 1000;
         width: 100%;
-        min-width: 240px;
-        min-height: 200px;
+        height: 30vh;
         
-        margin: 0 auto;
-        vertical-align: middle; 
-        overflow: hidden; 
-        background-color: #f9f9f9;
-
         .svg-content { 
             display: inline-block;
-            position: absolute;
-            top: 0;
-            left: 0;
             width: 100%;
             height: 100%;
         }        
@@ -173,9 +115,10 @@ onDestroy(handlerOnDestroy);
 
     @media (min-width: 640px) {
         .svg-container {
+            height: 80vh;
             position: relative;
         }
     }
 </style>
 
-<div class="svg-container"></div>
+<div class="svg-container"><svg class="svg-content"></svg></div>

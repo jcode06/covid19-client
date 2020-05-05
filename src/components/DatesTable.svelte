@@ -34,12 +34,9 @@
     // sort when activeColumn or dir are updated
     $: {
         if(activeColumn && curDir) {  
-            console.log('sorting', activeColumn, curDir);
-
             tableData.sort(sortData(activeColumn, curDir) );
             tableData = tableData;
-            
-            console.log('[DatesTable.svelte - mutate] tableData sorted...');
+            console.log('[DatesTable.svelte - mutate] tableData sorted...', activeColumn, curDir);
         }
     };
 

@@ -27,7 +27,7 @@ const run = () => {
 
     const container = document.querySelector('.svg-container');
 
-    const margin = { top: 20, right: 20, bottom: 30, left: 50 };
+    const margin = { top: 20, right: 20, bottom: 30, left: 60 };
 
     const width = container.clientWidth,
         height = container.clientHeight;

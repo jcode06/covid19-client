@@ -30,10 +30,9 @@
     // sort when activeColumn or dir are updated
     $: {
         if(activeColumn && curDir) {  
-            console.log('sorting', activeColumn, curDir);
-
             tableData.sort(sortData(activeColumn, curDir) );
             tableData = tableData;
+            console.log('[TodayTable] sorting...', activeColumn, curDir);
         }
     };
 

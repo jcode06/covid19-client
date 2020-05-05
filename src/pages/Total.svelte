@@ -3,7 +3,7 @@
 import { onMount, onDestroy } from 'svelte';
 import moment from 'moment';
 import model from '../model.js';
-import { currentPage, pageTitle } from '../stores.js';
+import { currentPage, pageTitle, totalPageModel } from '../stores.js';
 
 // presentational components    
 import Tab, {Icon, Label} from '@smui/tab';
@@ -13,22 +13,26 @@ import MapChart from '../components/MapChart.svelte';
 
 export let params;
 
-let active = 'Positives';
-let tabs = ['Positives', 'Mortalities', 'Tested'];
+let active = 'Confirmed Cases (daily)';
 let types = {
-    'Positives': 'positive',
-    'Mortalities': 'death',
-    'Tested': 'tested'
-};
+    'Confirmed Cases (daily)': 'positiveIncrease',
+    'Mortalities (daily)': 'deathIncrease',
+    'Tested (daily)': 'totalTestResultsIncrease',
 
-let type = 'positive';
+    'Confirmed Cases': 'positive',
+    'Mortalities': 'death',
+    'Tested': 'totalTestResults'
+};
+let tabs = Object.keys(types);
+let curType = 'positive';
+
 let dateString = moment().subtract(1, 'days').format('YYYYMMDD');
 let covidData = [];
 let mapJson = {};
 
 let response;
 
-const getMapData = (theData, curType) => {
+const getMapData = (theData, type) => {
     let mapFunc = () => {};
     let color = '';
     let title = '';
@@ -43,9 +47,24 @@ const getMapData = (theData, curType) => {
             title = 'Total Confirmed Positives by State';
             color = 'blue';
             break;
-        case 'tested':
+        case 'totalTestResults':
             mapFunc = state => ([state.stateName, state.totalTestResults]);
             title = 'Total Tests by State';
+            color = 'green';
+            break;
+        case 'deathIncrease':
+            mapFunc = state => ([state.stateName, state.deathIncrease]);
+            title = 'Daily Mortality';
+            color = 'orange';
+            break;
+        case 'positiveIncrease':
+            mapFunc = state => ([state.stateName, state.positiveIncrease]);
+            title = 'Daily Confirmed Cases';
+            color = 'blue';
+            break;
+        case 'totalTestResultsIncrease':
+            mapFunc = state => ([state.stateName, state.totalTestResultsIncrease]);
+            title = 'Daily Tests';
             color = 'green';
             break;
     }
@@ -54,11 +73,13 @@ const getMapData = (theData, curType) => {
 };
 
 const handlerClick = (e) => {
-    console.log(active, e);
-    type = types[active];
-    mapJson = getMapData(covidData.data, type);
+    curType = types[active];
+    mapJson = getMapData(covidData.data, curType);
 
-    console.log('click', type, mapJson);
+    totalPageModel.setMapType(curType);
+    totalPageModel.setActive(active);
+
+    console.log('[handlerClick]', curType, mapJson, $totalPageModel);
 };
 
 const handlerOnMount = async () => {
@@ -69,7 +90,16 @@ const handlerOnMount = async () => {
 
     covidData = await model.get({ type: 'total', dateString });
 
-    mapJson = getMapData(covidData.data, type);
+    if(!$totalPageModel.mapType || $totalPageModel.mapType.length <= 0) { 
+        totalPageModel.setMapType(curType); 
+    }
+    else {
+        curType = $totalPageModel.mapType;
+    }
+    active = $totalPageModel.active || active;
+    mapJson = getMapData(covidData.data, curType);
+
+    console.log('[handlerOnMount]', covidData.data, curType, $totalPageModel);
 };
 onMount(handlerOnMount);
 </script>

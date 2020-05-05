@@ -18,6 +18,7 @@ let svg;
 $: { 
     if(dataset instanceof Map && dataset.color && dataset.values) {
         update(usData, dataset);
+        console.log('[MapChart] updating...', usData, dataset);
     }
 };
 
@@ -27,6 +28,10 @@ const update = (usMapData, data) => {
         console.error('Data may not be available', svg, usMapData, data);
         return; 
     }
+
+    let values = Array.from(data.values() );
+    let min = d3.min(values) > 0 ? d3.min(values) : 1;
+    let max = d3.max(values);
 
     let colorScheme = d3.schemeBlues[9];
     switch(data.color) {
@@ -38,12 +43,11 @@ const update = (usMapData, data) => {
         case 'red': colorScheme = d3.schemeReds[9]; break;
     }
 
-    let values = Array.from(data.values() );
-    let min = d3.min(values) > 0 ? d3.min(values) : 1;
-    let max = d3.max(values);
-
-
     let color = d3.scaleQuantize([min, max], colorScheme);
+
+window.d3 = d3;
+window.color = color;
+
     // let color = d3.scaleLog()
     // let color = d3.scaleLinear()
     //     .domain([min, max])

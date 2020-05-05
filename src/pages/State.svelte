@@ -15,57 +15,62 @@ import DatesTable from '../components/DatesTable.svelte';
 export let params;
 export let state;
 
-let active = '';
+let active = 'Confirmeds and Mortalities';
+let types = {
+    'Confirmeds and Mortalities': { type: 'positive_and_death', colors: ['blue', 'red']  },
+    'Confirmed Cases (daily)': { type: 'positiveIncrease', colors: ['blue'] },
+    'Mortalities (daily)': { type: 'deathIncrease', colors: ['red'] },
+    'Tested (daily)': { type: 'totalTestResultsIncrease', colors: ['green']},
+    'Confirmed Cases': { type: 'positive', colors: ['blue']},
+    'Mortalities': { type: 'death', colors: ['red']},
+    'Tested': { type: 'totalTestResults', colors: ['green'] },
+    'Hospitalized': { type: 'hospitalizedCurrently', colors: ['black']},
+    'In ICU': { type: 'inIcuCurrently', colors: ['black']},
+    'On Ventilator': { type: 'onVentilatorCurrently', colors: ['black']}
+};
+let tabs = Object.keys(types);
+let curType = types[active];
+
+
 let stateName = '';
 let states = model.getStates();
+let covidData = [];
+let tableData = {};
+let chartData = [];
 
 $: state = state || params.state;
 $: stateName = states[state];
 
-let covidData = [];
-let chartData = [];
-
-
-$: { 
-    chartData = (covidData && Array.isArray(covidData.data)) ? 
-    covidData.data.map(row => ({ date: row.date, positive: row.positive, death: row.death })) 
-    : [];
-
-    if(covidData && covidData.data) {
-
-        let yMinMax = covidData.data.reduce( (acc, cur) => {
-            let { positive, death } = cur;
-            let min = Math.min(acc.min, positive, death);
-            let max = Math.max(acc.max, positive, death);
-
-            return { min, max };
-        }, { min: 0, max: 0 });
-
-        // let data = covidData.data.map(row => ({ x: new Date(row.date), y: [row.positive, row.death] }) );
-
-        let xData = covidData.data.map(row => new Date(row.date) );
-        let yData = covidData.data.reduce( (list => (acc, cur) => {
+const getChartData = (data, activeType) => {
+    let yReducer = list => (acc, cur) => {
         for(let i=0; i < list.length; i++) {
             if(!acc[i]) { acc[i] = []; }
             acc[i].push(cur[list[i]]);
         }
         return acc;
-        })(['positive', 'death']), [])
+    };
 
-        chartData = { 
-            xData, yData,
-            // data,
-            labels: { 'x': 'date', 'y': ['positive', 'death'] },
-            colors: ['green', 'red'],
-            min: { x: xData[0], y: yMinMax.min},
-            max: { x: xData[xData.length - 1], y: yMinMax.max}
-        };
+    let attributes = (activeType.type === 'positive_and_death') ? 
+        ['positive', 'death'] : [activeType.type];
+    let colors = activeType.colors;
 
+    let xData = data.map(row => new Date(row.date) );
+    let yData = data.reduce( yReducer(attributes), []);
+    let yMinMax = { min: Math.min(...yData.flat() ), max: Math.max(...yData.flat() ) };
 
-    window.covidData = covidData;
+    return { 
+        xData, yData,
+        labels: { 'x': 'date', 'y': attributes },
+        colors,
+        min: { x: xData[0], y: yMinMax.min},
+        max: { x: xData[xData.length - 1], y: yMinMax.max}
+    };    
+};
 
-        console.log('State', covidData, chartData);
-    }
+const handlerClick = (e) => {
+    curType = types[active];
+    chartData = getChartData(covidData.data, curType);
+    console.log('[handlerClick] click handled', covidData.data, curType);
 };
 
 const handlerOnMount = async () => {
@@ -75,6 +80,10 @@ const handlerOnMount = async () => {
     currentPage.set('state');
 
     covidData = await model.get({ type: 'state', state });
+    tableData = { headers: [...covidData.headers], data: [...covidData.data] };
+    chartData = getChartData(covidData.data, curType);
+
+    window.covidData = covidData;
 };
 
 onMount(handlerOnMount);
@@ -109,7 +118,7 @@ onMount(handlerOnMount);
 
 <section class="content">
     <section class="charts">
-        <TabBar tabs={['Confirmeds and Mortalities', 'Confirmeds', 'Mortalities']} let:tab bind:active>
+        <TabBar tabs={tabs} let:tab bind:active on:click={handlerClick}>
             <!-- Notice that the `tab` property is required! -->
             <Tab {tab}>
                 <Label>{tab}</Label>
@@ -117,5 +126,5 @@ onMount(handlerOnMount);
         </TabBar>
         <LineChart dataset={chartData} />
     </section>
-    <DatesTable {params} {state} dataset={covidData} />
+    <DatesTable {params} {state} dataset={tableData} />
 </section>

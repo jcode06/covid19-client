@@ -105,6 +105,8 @@ onDestroy(handlerOnDestroy);
     .svg-container { 
         width: 100%;
         height: 30vh;
+        background-color: #e9e9e9;
+
         
         .svg-content { 
             display: inline-block;

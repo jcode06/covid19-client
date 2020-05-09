@@ -17,9 +17,8 @@ export let params;
 export let state;
 
 
-let activeTab = 'Confirmeds and Mortalities';
 let types = {
-    'Confirmeds and Mortalities': { type: 'positive_and_death', colors: ['blue', 'red']  },
+    // 'Confirmeds and Mortalities': { type: 'positive_and_death', colors: ['blue', 'red']  },
     'Confirmed Cases (daily)': { type: 'positiveIncrease', colors: ['blue'] },
     'Mortalities (daily)': { type: 'deathIncrease', colors: ['red'] },
     'Tested (daily)': { type: 'totalTestResultsIncrease', colors: ['green']},
@@ -30,6 +29,8 @@ let types = {
     'In ICU': { type: 'inIcuCurrently', colors: ['black']},
     'On Ventilator': { type: 'onVentilatorCurrently', colors: ['black']}
 };
+let activeTab = Object.keys(types)[0];
+
 let tabs = Object.keys(types);
 let curType = types[activeTab];
 

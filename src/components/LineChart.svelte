@@ -18,7 +18,6 @@ export let dataset = {};
 // Just update the graph whenever the dataset may change
 $: {
     if(dataset && dataset.xData && dataset.yData && document.querySelector('.svg-container') ) {
-        console.log('[LineChart.svelte - mutate] updating...', dataset);
         run();
     }
 }
@@ -82,8 +81,6 @@ const handlerOnMount = async () => {
 
     if( !(dataset && dataset.xData && dataset.yData) ) { return; }
     run();
-
-    console.log('[LineChart.svelte - handlerOnMount] finished...');
 };
 
 let timeout;
@@ -93,8 +90,6 @@ const handlerResize = () => {
 
     if(timeout) { clearTimeout(timeout); }
     timeout = setTimeout( () => { run(); }, 500);
-
-    console.log('[LineChart.svelte - handlerResize] resizing...');
 };
 
 

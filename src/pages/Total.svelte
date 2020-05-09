@@ -59,7 +59,6 @@ $: {
             data: covidData.data.slice()
         };
 
-        console.log(activeColumn, curDir);
         tableData.data = tableData.data.sort(sortData(activeColumn, curDir) );
         tableData.data = tableData.data.map(row => {
             let newObj = {};
@@ -77,7 +76,6 @@ $: {
 
             return newObj;
         });
-        console.log('[Total.svelte - mutate] covidData sorted...', activeColumn, curDir, tableData);
     }
 }
 
@@ -130,7 +128,6 @@ const sortData = (column, direction) => (first, second) => {
 // Handles the sorting that occurs when a user clicks on the Header
 const dispatchHandlerHeaderClick = e => {
 
-    console.log('[Total - dispatchHandlerHeaderClick] click handled', e, event, tableData);
     let target = e.detail.target;
     if(!target) { console.error('[Total - dispatchHandlerHeaderClick] Unable to sort', event.target); return; }
 
@@ -147,7 +144,6 @@ const dispatchHandlerHeaderClick = e => {
 };
 
 const dispatchHandlerRowClick = e => {
-    console.log('[Total - dispatchHandlerRowClick] click handled', e, event);
     let target = e.detail.target;
     if(!target) { console.error('Unable to sort', event.target); return; }
 
@@ -159,8 +155,6 @@ const handlerClick = (e) => {
 
     totalPageModel.setMapType(curType);
     totalPageModel.setActive(activeTab);
-
-    console.log('[handlerClick]', curType, mapJson, $totalPageModel);
 };
 
 const handlerOnMount = async () => {
@@ -179,8 +173,6 @@ const handlerOnMount = async () => {
     }
     activeTab = $totalPageModel.active || activeTab;
     mapJson = getMapData(covidData.data, curType);
-
-    console.log('[handlerOnMount]', covidData.data, curType, $totalPageModel);
 };
 onMount(handlerOnMount);
 </script>

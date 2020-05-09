@@ -208,7 +208,6 @@ const model = () => {
                     .map(setupHeaders);
 
                 console.log('[model.get] - Fetching data from API', response);
-
                 localStorage.setItem(localStore, JSON.stringify({...response, timestamp: Date.now() }) );
             }
         }

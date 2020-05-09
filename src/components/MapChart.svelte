@@ -18,7 +18,6 @@ let svg;
 $: { 
     if(dataset instanceof Map && dataset.color && dataset.values) {
         update(usData, dataset);
-        console.log('[MapChart] updating...', usData, dataset);
     }
 };
 

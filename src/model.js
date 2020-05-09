@@ -70,6 +70,9 @@ const setupHeaders =  header => {
     let label = header.charAt(0).toUpperCase() + header.substring(1);
 
     switch(header) {
+        case 'date':
+            defaultSort = 'asc';
+            break;
         case 'state':
             defaultSort = 'asc';
             break;
@@ -128,6 +131,7 @@ const mapCovidDataState = row => {
     } = row;
 
     let date = moment(timestamp).format('MM/DD/YYYY');
+    let day = moment(timestamp).format('dddd');
     let posPercentage = (totalTestResults > 0) ? 
         parseFloat( (positive/totalTestResults*100).toFixed(1) ) : 'N/A';
     let deathPercentage = (positive > 0) ? 
@@ -135,6 +139,7 @@ const mapCovidDataState = row => {
 
     return {
         date,
+        day,
         state, 
         country,
         positive, death,
@@ -167,13 +172,15 @@ const model = () => {
                 url += `states/${dateString}`;
                 localStore = 'covidResponse';
                 formatFunc = mapCovidDataTotal;
-                headeExclusionList = ['positiveIncrease', 'deathIncrease', 'totalTestResultsIncrease', 'stateName'];
+                headeExclusionList = ['positiveIncrease', 'deathIncrease', 
+                    'totalTestResultsIncrease', 'stateName'];
                 break;
             case 'state':
                 url += `state/${state}`;
                 localStore = `covidResponse-${state}`;
                 formatFunc = mapCovidDataState;
-                headeExclusionList = ['positiveIncrease', 'deathIncrease', 'totalTestResultsIncrease', 'stateName', 'state', 'country'];
+                headeExclusionList = ['positiveIncrease', 'deathIncrease', 
+                    'totalTestResultsIncrease', 'day', 'stateName', 'state', 'country'];
                 break;
 
             default: 
@@ -183,17 +190,21 @@ const model = () => {
 
         try {
             response = JSON.parse( localStorage.getItem(localStore) );
+            console.log('[model] - Fetching data from localStore', localStore, response);
+            
     
-            if(typeof response === 'undefined' || !response || (Date.now() - response.timestamp > cacheTTL) ) { 
-                console.log('Fetching data from API');
+            if(!response || response == null || response.timestamp == null || 
+                (Date.now() - response.timestamp > cacheTTL) ) { 
                 response = await axios.get(url);
                 response.data.Items = response.data.Items.map(formatFunc);
-                
+
                 headers = Object.keys(response.data.Items[0]);
 
                 response.data.Headers = headers
                     .filter( header => !headeExclusionList.includes(header) )
                     .map(setupHeaders);
+
+                console.log('[model] - Fetching data from API', response);
 
                 localStorage.setItem(localStore, JSON.stringify({...response, timestamp: Date.now() }) );
             }

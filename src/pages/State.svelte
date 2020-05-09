@@ -1,6 +1,8 @@
 <script>
 // library, model, and local app store
 import { onMount, onDestroy } from 'svelte';
+import { push } from 'svelte-spa-router';
+
 import moment from 'moment';
 import model from '../model.js';
 import { currentPage, pageTitle } from '../stores.js';
@@ -9,13 +11,14 @@ import { currentPage, pageTitle } from '../stores.js';
 import Tab, {Icon, Label} from '@smui/tab';
 import TabBar from '@smui/tab-bar';
 import LineChart from '../components/LineChart.svelte';
-import DatesTable from '../components/DatesTable.svelte';
+import DisplayTable from '../components/DisplayTable.svelte';
 
 
 export let params;
 export let state;
 
-let active = 'Confirmeds and Mortalities';
+
+let activeTab = 'Confirmeds and Mortalities';
 let types = {
     'Confirmeds and Mortalities': { type: 'positive_and_death', colors: ['blue', 'red']  },
     'Confirmed Cases (daily)': { type: 'positiveIncrease', colors: ['blue'] },
@@ -29,19 +32,77 @@ let types = {
     'On Ventilator': { type: 'onVentilatorCurrently', colors: ['black']}
 };
 let tabs = Object.keys(types);
-let curType = types[active];
-
+let curType = types[activeTab];
 
 let stateName = '';
 let states = model.getStates();
+
 let covidData = [];
 let tableData = {};
 let chartData = [];
+let isTableLoaded = false;
+let isChartLoaded = false;
+
+// For table sorting
+let activeColumn = 'date';
+let curDir = 'desc';
+
 
 $: state = state || params.state;
 $: stateName = states[state];
 
+// Reactive statements for headers & tableData
+$: { 
+    if(params) {
+        let { sort, dir } = params;
+        activeColumn = sort;
+        curDir = dir;
+    }
+};
+
+$: { 
+    if(covidData && covidData.data) {
+        tableData = { 
+            headers: covidData.headers.slice(),
+            data: covidData.data.slice()
+        };
+        tableData.data = tableData.data.sort(sortData(activeColumn, curDir) );
+        tableData.data = tableData.data.map(row => {
+            let newObj = {};
+            for(let prop in row) {
+                if(!['state', 'country', 'day',
+                'positiveIncrease', 'deathIncrease', 'totalTestResultsIncrease']
+                    .includes(prop) ) { newObj[prop] = row[prop]; }
+            }
+
+            // custom attributes
+            newObj['date'] = `${row.date} (${row.day})`;
+            newObj['positive'] += ` (${row.positiveIncrease})`;
+            newObj['death'] += ` (${row.deathIncrease})`; 
+            newObj['totalTestResults'] += ` (${row.totalTestResultsIncrease})`; 
+
+            return newObj;
+        });
+        console.log('[DatesTable.svelte - mutate] covidData sorted...', activeColumn, curDir, tableData);
+    }
+}
+
+$: chartData = (covidData && covidData.data && covidData.data.length > 0) ? getChartData([...covidData.data], curType) : [];
+
+
+$: isTableLoaded = (tableData && tableData.headers && tableData.data);
+$: isChartLoaded = (chartData && chartData.xData && chartData.yData);
+
+
+
 const getChartData = (data, activeType) => {
+    if(!Array.isArray(data) ) { return []; }
+
+    let attributes, colors,
+        xData = [], yData = [],
+        yMinMax = { min: 0, max: 0 };
+    
+
     let yReducer = list => (acc, cur) => {
         for(let i=0; i < list.length; i++) {
             if(!acc[i]) { acc[i] = []; }
@@ -50,13 +111,14 @@ const getChartData = (data, activeType) => {
         return acc;
     };
 
-    let attributes = (activeType.type === 'positive_and_death') ? 
+    attributes = (activeType.type === 'positive_and_death') ? 
         ['positive', 'death'] : [activeType.type];
-    let colors = activeType.colors;
+    colors = activeType.colors;
 
-    let xData = data.map(row => new Date(row.date) );
-    let yData = data.reduce( yReducer(attributes), []);
-    let yMinMax = { min: Math.min(...yData.flat() ), max: Math.max(...yData.flat() ) };
+    xData = data.map(row => new Date(row.date) );
+    yData = data.reduce( yReducer(attributes), []);
+    yMinMax = { min: Math.min(...yData.flat() ), max: Math.max(...yData.flat() ) };
+
 
     return { 
         xData, yData,
@@ -67,10 +129,35 @@ const getChartData = (data, activeType) => {
     };    
 };
 
-const handlerClick = (e) => {
-    curType = types[active];
-    chartData = getChartData(covidData.data, curType);
-    console.log('[handlerClick] click handled', covidData.data, curType);
+const sortData = (column, direction) => (first, second) => {
+    let multiplier = (direction === 'asc') ? 1 : -1;
+    return (first[column] < second[column]) ? multiplier * -1 : multiplier * 1;
+};
+
+// Handles the sorting that occurs when a user clicks on the Header
+const dispatchHandlerHeaderClick = e => {
+
+    console.log('[State - dispatchHandlerHeaderClick] click handled', e, event, tableData);
+    let target = e.detail.target;
+    if(!target) { console.error('[State - dispatchHandlerHeaderClick] Unable to sort', event.target); return; }
+
+    let index = target.dataset.index;
+    let newColumn = target.dataset.sort;
+
+    // If switching columns, use the new columns default sort
+    // Else, same column, toggle between asc/desc
+    curDir = (activeColumn !== newColumn) ? covidData.headers[index].defaultSort : 
+        ((curDir === 'asc') ? 'desc' : 'asc');
+    activeColumn = newColumn;
+    
+    push(`/state/${state}/sort/${activeColumn}/${curDir}`);    
+};
+
+const dispatchHandlerRowClick = e => {
+    console.log('[State - dispatchHandlerRowClick] click handled', e, event);
+    let target = e.detail.target;
+    if(!target) { console.error('Unable to sort', event.target); return; }
+
 };
 
 const handlerOnMount = async () => {
@@ -79,11 +166,20 @@ const handlerOnMount = async () => {
     pageTitle.set(stateName);
     currentPage.set('state');
 
-    covidData = await model.get({ type: 'state', state });
-    tableData = { headers: [...covidData.headers], data: [...covidData.data] };
-    chartData = getChartData(covidData.data, curType);
+    try {
+        covidData = await model.get({ type: 'state', state });
+        console.log('[State - handlerOnMount] finished mounting', covidData);
+    }
+    catch(e) {
+        console.error('[State - handlerOnMount] - Error loading covidData', e);
+    }
 
-    window.covidData = covidData;
+};
+
+const handlerClick = (e) => {
+    curType = types[activeTab];
+    chartData = getChartData(covidData.data, curType);
+    console.log('[State - handlerClick] click handled', covidData.data, curType);
 };
 
 onMount(handlerOnMount);
@@ -118,13 +214,20 @@ onMount(handlerOnMount);
 
 <section class="content">
     <section class="charts">
-        <TabBar tabs={tabs} let:tab bind:active on:click={handlerClick}>
+        <TabBar tabs={tabs} let:tab bind:active={activeTab} on:click={handlerClick}>
             <!-- Notice that the `tab` property is required! -->
             <Tab {tab}>
                 <Label>{tab}</Label>
             </Tab>
         </TabBar>
+        {#if isChartLoaded}
         <LineChart dataset={chartData} />
+        {/if}
     </section>
-    <DatesTable {params} {state} dataset={tableData} />
+    {#if isTableLoaded}
+    <DisplayTable dataset={tableData} 
+        on:headerClick={dispatchHandlerHeaderClick} 
+        on:rowClick={dispatchHandlerRowClick} 
+    />
+    {/if}
 </section>

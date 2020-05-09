@@ -1,6 +1,8 @@
 <script>
 // library, model, and local app store
 import { onMount, onDestroy } from 'svelte';
+import { push } from 'svelte-spa-router';
+
 import moment from 'moment';
 import model from '../model.js';
 import { currentPage, pageTitle, totalPageModel } from '../stores.js';
@@ -8,12 +10,14 @@ import { currentPage, pageTitle, totalPageModel } from '../stores.js';
 // presentational components    
 import Tab, {Icon, Label} from '@smui/tab';
 import TabBar from '@smui/tab-bar';
-import TodayTable from '../components/TodayTable.svelte';
+// import TodayTable from '../components/TodayTable.svelte';
+import DisplayTable from '../components/DisplayTable.svelte';
+
 import MapChart from '../components/MapChart.svelte';
 
 export let params;
 
-let active = 'Confirmed Cases (daily)';
+let activeTab = 'Confirmed Cases (daily)';
 let types = {
     'Confirmed Cases (daily)': 'positiveIncrease',
     'Mortalities (daily)': 'deathIncrease',
@@ -27,10 +31,56 @@ let tabs = Object.keys(types);
 let curType = 'positive';
 
 let dateString = moment().subtract(1, 'days').format('YYYYMMDD');
-let covidData = [];
 let mapJson = {};
 
+let covidData = [];
+let tableData = {};
+
+// For table sorting
+let activeColumn = 'state';
+let curDir = 'asc';
+
+
 let response;
+
+// Reactive statements for headers & tableData
+$: { 
+    if(params) {
+        let { sort, dir } = params;
+        activeColumn = sort;
+        curDir = dir;
+    }
+};
+
+$: { 
+    if(covidData && covidData.data) {
+        tableData = { 
+            headers: covidData.headers.slice(),
+            data: covidData.data.slice()
+        };
+
+        console.log(activeColumn, curDir);
+        tableData.data = tableData.data.sort(sortData(activeColumn, curDir) );
+        tableData.data = tableData.data.map(row => {
+            let newObj = {};
+            for(let prop in row) {
+                if(!['stateName', 'country', 'positiveIncrease', 'deathIncrease', 'totalTestResultsIncrease']
+                    .includes(prop) ) { newObj[prop] = row[prop]; }
+            }
+
+//            newObj['state'] = `<a href="#/state/${row.state}/">${row.stateName}</a>`;
+            newObj['state'] = { href: `#/state/${row.state}/`, text: row.stateName };
+
+            newObj['positive'] += ` (${row.positiveIncrease})`;
+            newObj['death'] += ` (${row.deathIncrease})`; 
+            newObj['totalTestResults'] += ` (${row.totalTestResultsIncrease})`; 
+
+            return newObj;
+        });
+        console.log('[Total.svelte - mutate] covidData sorted...', activeColumn, curDir, tableData);
+    }
+}
+
 
 const getMapData = (theData, type) => {
     let mapFunc = () => {};
@@ -72,12 +122,43 @@ const getMapData = (theData, type) => {
     return Object.assign( new Map( theData.map(mapFunc) ), { title, color } );
 };
 
+const sortData = (column, direction) => (first, second) => {
+    let multiplier = (direction === 'asc') ? 1 : -1;
+    return (first[column] < second[column]) ? multiplier * -1 : multiplier * 1;
+};
+
+// Handles the sorting that occurs when a user clicks on the Header
+const dispatchHandlerHeaderClick = e => {
+
+    console.log('[Total - dispatchHandlerHeaderClick] click handled', e, event, tableData);
+    let target = e.detail.target;
+    if(!target) { console.error('[Total - dispatchHandlerHeaderClick] Unable to sort', event.target); return; }
+
+    let index = target.dataset.index;
+    let newColumn = target.dataset.sort;
+
+    // If switching columns, use the new columns default sort
+    // Else, same column, toggle between asc/desc
+    curDir = (activeColumn !== newColumn) ? covidData.headers[index].defaultSort : 
+        ((curDir === 'asc') ? 'desc' : 'asc');
+    activeColumn = newColumn;
+    
+    push(`/sort/${activeColumn}/${curDir}`);
+};
+
+const dispatchHandlerRowClick = e => {
+    console.log('[Total - dispatchHandlerRowClick] click handled', e, event);
+    let target = e.detail.target;
+    if(!target) { console.error('Unable to sort', event.target); return; }
+
+};
+
 const handlerClick = (e) => {
-    curType = types[active];
+    curType = types[activeTab];
     mapJson = getMapData(covidData.data, curType);
 
     totalPageModel.setMapType(curType);
-    totalPageModel.setActive(active);
+    totalPageModel.setActive(activeTab);
 
     console.log('[handlerClick]', curType, mapJson, $totalPageModel);
 };
@@ -96,7 +177,7 @@ const handlerOnMount = async () => {
     else {
         curType = $totalPageModel.mapType;
     }
-    active = $totalPageModel.active || active;
+    activeTab = $totalPageModel.active || activeTab;
     mapJson = getMapData(covidData.data, curType);
 
     console.log('[handlerOnMount]', covidData.data, curType, $totalPageModel);
@@ -136,7 +217,7 @@ onMount(handlerOnMount);
     <!-- <h1>Covid Data for <span>{ moment(dateString).format('MM/DD/YYYY')}</span></h1> -->
 
     <section class="charts">
-        <TabBar tabs={tabs} let:tab bind:active on:click={handlerClick}>
+        <TabBar tabs={tabs} let:tab bind:active={activeTab} on:click={handlerClick}>
             <!-- Notice that the `tab` property is required! -->
             <Tab {tab}>
                 <Label>{tab}</Label>
@@ -144,5 +225,10 @@ onMount(handlerOnMount);
         </TabBar>
         <MapChart dataset={mapJson}/>
     </section>
-    <TodayTable {params} dataset={covidData} />
+    <!-- <TodayTable {params} dataset={covidData} /> -->
+    <DisplayTable dataset={tableData} 
+    on:headerClick={dispatchHandlerHeaderClick} 
+    on:rowClick={dispatchHandlerRowClick} 
+    />
+
 </section>

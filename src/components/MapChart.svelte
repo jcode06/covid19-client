@@ -24,7 +24,7 @@ $: {
 
 const update = (usMapData, data) => {
     if(!svg || !usMapData || usMapData.length || 
-        !data || data.length <= 0) { 
+        !data || !data.values || data.length <= 0) { 
         console.error('Data may not be available', svg, usMapData, data);
         return; 
     }

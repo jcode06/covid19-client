@@ -17,7 +17,7 @@ export let dataset = {};
 
 // Just update the graph whenever the dataset may change
 $: {
-    if(dataset && dataset.xData && dataset.yData) {
+    if(dataset && dataset.xData && dataset.yData && document.querySelector('.svg-container') ) {
         console.log('[LineChart.svelte - mutate] updating...', dataset);
         run();
     }
@@ -79,6 +79,10 @@ window.run = run;
 
 const handlerOnMount = async () => {
     window.addEventListener('resize', handlerResize, {passive: true});
+
+    if( !(dataset && dataset.xData && dataset.yData) ) { return; }
+    run();
+
     console.log('[LineChart.svelte - handlerOnMount] finished...');
 };
 

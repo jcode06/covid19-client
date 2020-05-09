@@ -1,9 +1,12 @@
 import svelte from 'rollup-plugin-svelte';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
+import json from '@rollup/plugin-json';
+
 import livereload from 'rollup-plugin-livereload';
 import { terser } from 'rollup-plugin-terser';
 import postcss from 'rollup-plugin-postcss';
+
 
 import { autoPreprocess } from 'svelte-preprocess/dist/autoProcess';
 //import { sass } from 'svelte-preprocess-sass';
@@ -56,6 +59,7 @@ export default {
 			]
 		}),		
 		commonjs(),
+		json(),
 		
 
 		// In dev mode, call `npm run start` once

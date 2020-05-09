@@ -1,6 +1,9 @@
 import axios from 'axios';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import { addSpacesToWord } from './lib/helpers.js';
+
+// set the default timezone to UTC
+moment.tz.setDefault('UTC');
 
 const statesList = {
     "AL": "Alabama",

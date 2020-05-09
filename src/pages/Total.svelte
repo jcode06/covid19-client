@@ -59,26 +59,53 @@ $: {
             data: covidData.data.slice()
         };
 
+        let totals = covidData.data.reduce( (acc, cur) => {
+            let keys = Object.keys(acc);
+
+            for(let key of keys) {
+                acc[key] += cur[key];
+            }
+        
+            return acc;
+        }, { positive: 0, death: 0, totalTestResults: 0, pending: 0,
+            positiveIncrease: 0, deathIncrease: 0, totalTestResultsIncrease: 0, pendingIncrease: 0
+        });
+        totals = {
+            positive: `${formatNumber(totals.positive)} (${formatNumber(totals.positiveIncrease)})`,
+            death: `${formatNumber(totals.death)} (${formatNumber(totals.deathIncrease)})`,
+            totalTestResults: `${formatNumber(totals.totalTestResults)} (${formatNumber(totals.totalTestResultsIncrease)})`,
+            posPercentage: '',
+            deathPercentage: '',
+            hospitalizedCurrently: '',
+            inIcuCurrently: '',
+            onVentilatorCurrently: '',
+            pending: formatNumber(totals.pending)
+        };
+        totals = { state: 'Totals', ...totals }; 
+
         tableData.data = tableData.data.sort(sortData(activeColumn, curDir) );
         tableData.data = tableData.data.map(row => {
             let newObj = {};
             for(let prop in row) {
                 if(!['stateName', 'country', 'positiveIncrease', 'deathIncrease', 'totalTestResultsIncrease']
-                    .includes(prop) ) { newObj[prop] = row[prop]; }
+                    .includes(prop) ) { 
+                        newObj[prop] = (isNaN(row[prop])) ? row[prop] : formatNumber(row[prop]); 
+                    }
             }
 
-//            newObj['state'] = `<a href="#/state/${row.state}/">${row.stateName}</a>`;
             newObj['state'] = { href: `#/state/${row.state}/`, text: row.stateName };
 
-            newObj['positive'] += ` (${row.positiveIncrease})`;
-            newObj['death'] += ` (${row.deathIncrease})`; 
-            newObj['totalTestResults'] += ` (${row.totalTestResultsIncrease})`; 
+            newObj['positive'] += ` (${formatNumber(row.positiveIncrease)})`;
+            newObj['death'] += ` (${formatNumber(row.deathIncrease)})`; 
+            newObj['totalTestResults'] += ` (${formatNumber(row.totalTestResultsIncrease)})`; 
 
             return newObj;
         });
+        tableData.data = [totals, ...tableData.data];
     }
 }
 
+const formatNumber = number => new Intl.NumberFormat().format(number);
 
 const getMapData = (theData, type) => {
     let mapFunc = () => {};

@@ -184,13 +184,13 @@ const model = () => {
                 break;
 
             default: 
-                console.error('[get] Error getting data, no type provided', params);
+                console.error('[model.get] Error getting data, no type provided', params);
                 return [];
         }
 
         try {
             response = JSON.parse( localStorage.getItem(localStore) );
-            console.log('[model] - Fetching data from localStore', localStore, response);
+            console.log('[model.get] - Fetching data from localStore', localStore, response);
             
     
             if(!response || response == null || response.timestamp == null || 
@@ -198,21 +198,24 @@ const model = () => {
                 response = await axios.get(url);
                 response.data.Items = response.data.Items.map(formatFunc);
 
+                // handle the case where we don't get any items back
+                if(response.data.Items.length <= 0) { throw 'Server responded with no Items';  }
+
                 headers = Object.keys(response.data.Items[0]);
 
                 response.data.Headers = headers
                     .filter( header => !headeExclusionList.includes(header) )
                     .map(setupHeaders);
 
-                console.log('[model] - Fetching data from API', response);
+                console.log('[model.get] - Fetching data from API', response);
 
                 localStorage.setItem(localStore, JSON.stringify({...response, timestamp: Date.now() }) );
             }
         }
         catch(e) {
-            console.error('Error loading covid19 data', e);
+            console.error('[model.get] Error loading covid19 data: ', e);
         }    
-        return (response && response.data ) ? { headers: response.data.Headers, data: response.data.Items } : { headers: [], data: [] }; 
+        return (response && response.data ) ? { headers: response.data.Headers || [], data: response.data.Items || [] } : { headers: [], data: [] }; 
     };
 
     const getStates = () => statesList;

@@ -1,11 +1,10 @@
 <script>
 // library, model, and local app store
-import { onMount, onDestroy } from 'svelte';
 import { push } from 'svelte-spa-router';
 
 import moment from 'moment';
 import model from '../model.js';
-import { currentPage, pageTitle } from '../stores.js';
+import { currentPage, pageTitle, currentState } from '../stores.js';
 
 // presentational components
 import Tab, {Icon, Label} from '@smui/tab';
@@ -47,9 +46,18 @@ let isChartLoaded = false;
 let activeColumn = 'date';
 let curDir = 'desc';
 
+// Setting the state triggers changes on the page, including changes to covidData
+$: {
+    (async () => {
+        state = params.state;
+        stateName = states[state];
+        
+        pageTitle.set(stateName);
+        currentState.set(state);
 
-$: state = state || params.state;
-$: stateName = states[state];
+        covidData = await getData(state);
+    })();
+};
 
 // Reactive statements for headers & tableData
 $: { 
@@ -60,6 +68,7 @@ $: {
     }
 };
 
+// Set up tableData whenever covidData changes
 $: { 
     if(covidData && covidData.data) {
         tableData = { 
@@ -83,12 +92,10 @@ $: {
 
             return newObj;
         });
-        console.log('[DatesTable.svelte - mutate] covidData sorted...', activeColumn, curDir, tableData);
     }
 }
 
 $: chartData = (covidData && covidData.data && covidData.data.length > 0) ? getChartData([...covidData.data], curType) : [];
-
 
 $: isTableLoaded = (tableData && tableData.headers && tableData.data);
 $: isChartLoaded = (chartData && chartData.xData && chartData.yData);
@@ -134,10 +141,23 @@ const sortData = (column, direction) => (first, second) => {
     return (first[column] < second[column]) ? multiplier * -1 : multiplier * 1;
 };
 
+const getData = async curState => {
+
+    if(!curState) { console.error('No state present'); return; }
+
+    let data = [];
+    try {
+        data = await model.get({ type: 'state', state: curState });
+    }
+    catch(e) {
+        console.error('[State - getData] - Error loading covidData', e);
+    }
+    return data;
+}
+
 // Handles the sorting that occurs when a user clicks on the Header
 const dispatchHandlerHeaderClick = e => {
 
-    console.log('[State - dispatchHandlerHeaderClick] click handled', e, event, tableData);
     let target = e.detail.target;
     if(!target) { console.error('[State - dispatchHandlerHeaderClick] Unable to sort', event.target); return; }
 
@@ -154,35 +174,16 @@ const dispatchHandlerHeaderClick = e => {
 };
 
 const dispatchHandlerRowClick = e => {
-    console.log('[State - dispatchHandlerRowClick] click handled', e, event);
     let target = e.detail.target;
     if(!target) { console.error('Unable to sort', event.target); return; }
-
-};
-
-const handlerOnMount = async () => {
-    let response;
-
-    pageTitle.set(stateName);
-    currentPage.set('state');
-
-    try {
-        covidData = await model.get({ type: 'state', state });
-        console.log('[State - handlerOnMount] finished mounting', covidData);
-    }
-    catch(e) {
-        console.error('[State - handlerOnMount] - Error loading covidData', e);
-    }
 
 };
 
 const handlerClick = (e) => {
     curType = types[activeTab];
     chartData = getChartData(covidData.data, curType);
-    console.log('[State - handlerClick] click handled', covidData.data, curType);
 };
 
-onMount(handlerOnMount);
 </script>
 <style type="text/scss">
     .content {
@@ -209,8 +210,6 @@ onMount(handlerOnMount);
 <svelte:head>
     <title>CV Totals for {stateName}</title>
 </svelte:head>
-
-<!-- <h1>Covid Data for <span>{state}</span></h1> -->
 
 <section class="content">
     <section class="charts">

@@ -1,35 +1,23 @@
+# Covid 19 Client
+A COVID-19 Client that consumes the COVID-19 API I made.
+
 ## Links
-Offline Cookbook for Service Workers, PWA
-https://jakearchibald.com/2014/offline-cookbook/#cache-persistence
+[The COVID Tracking Project]
+(https://covidtracking.com/)
 
-Intro to Service Workers
-https://developers.google.com/web/fundamentals/primers/service-workers
+[Offline Cookbook for Service Workers, PWA]
+(https://jakearchibald.com/2014/offline-cookbook/#cache-persistence)
 
-Svelte D3 Example
-https://svelte.dev/repl/01a5774b53e9416584428c025668407b?version=3.15.0
+[Intro to Service Workers]
+(https://developers.google.com/web/fundamentals/primers/service-workers)
 
-Cloropleth Map Example
-https://observablehq.com/@d3/choropleth
+[Svelte D3 Example]
+(https://svelte.dev/repl/01a5774b53e9416584428c025668407b?version=3.15.0)
+
+[Cloropleth Map Example]
+(https://observablehq.com/@d3/choropleth)
 
 ---
-
-*Looking for a shareable component template? Go here --> [sveltejs/component-template](https://github.com/sveltejs/component-template)*
-
----
-
-# svelte app
-
-This is a project template for [Svelte](https://svelte.dev) apps. It lives at https://github.com/sveltejs/template.
-
-To create a new project based on this template using [degit](https://github.com/Rich-Harris/degit):
-
-```bash
-npx degit sveltejs/template svelte-app
-cd svelte-app
-```
-
-*Note that you will need to have [Node.js](https://nodejs.org) installed.*
-
 
 ## Get started
 

@@ -1,6 +1,7 @@
 <script>
 // library, model, and local app store
 import { push } from 'svelte-spa-router';
+import { onMount, onDestroy } from 'svelte';
 
 import moment from 'moment';
 import model from '../model.js';
@@ -184,6 +185,16 @@ const handlerClick = (e) => {
     curType = types[activeTab];
     chartData = getChartData(covidData.data, curType);
 };
+
+onMount( () => {
+        state = params.state;
+        stateName = states[state];        
+
+        // set the app store states
+        pageTitle.set(stateName);
+        currentState.set(state);
+        currentPage.set('state');
+});
 
 </script>
 <style type="text/scss">

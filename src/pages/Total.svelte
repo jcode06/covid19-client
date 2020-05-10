@@ -10,7 +10,6 @@ import { currentPage, pageTitle, totalPageModel } from '../stores.js';
 // presentational components    
 import Tab, {Icon, Label} from '@smui/tab';
 import TabBar from '@smui/tab-bar';
-// import TodayTable from '../components/TodayTable.svelte';
 import DisplayTable from '../components/DisplayTable.svelte';
 
 import MapChart from '../components/MapChart.svelte';
@@ -184,11 +183,12 @@ const handlerClick = (e) => {
     totalPageModel.setActive(activeTab);
 };
 
-const handlerOnMount = async () => {
+onMount(async () => {
 	let response;
 
     pageTitle.set('Totals');
     currentPage.set('total');
+    currentState.set('');
 
     covidData = await model.get({ type: 'total', dateString });
 
@@ -200,8 +200,7 @@ const handlerOnMount = async () => {
     }
     activeTab = $totalPageModel.active || activeTab;
     mapJson = getMapData(covidData.data, curType);
-};
-onMount(handlerOnMount);
+});
 </script>
 
 <style type="text/scss">

@@ -159,6 +159,7 @@ const model = () => {
     // default is 4 hours = 4 * 60 min * 60 sec
     let cacheTTL = 4 * 60 * 60000;
     let API_ENDPOINT = 'https://johnpangilinan-covid19-api.herokuapp.com/api/';
+    // let API_ENDPOINT = 'http://127.0.0.1:8080/api/';
 
     const get = async params => {
         let { type, state, dateString } = params;

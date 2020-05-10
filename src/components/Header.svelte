@@ -1,4 +1,5 @@
 <script>
+
 import { push } from 'svelte-spa-router';
 
 import TopAppBar, {Row, Section, Title} from '@smui/top-app-bar';
@@ -17,7 +18,6 @@ let states = Object.entries( model.getStates() || [])
     .filter( stateObj => !['FM', 'MH', 'PW'].includes(stateObj.state) );
 let stateSelected = '';
 $: stateSelected = $currentState;
-
 
 const handlerSelectChange = e => {
     if(! (e && e.target ) ) { console.error('[Header.handlerSelectChange] Error: unable to get Select target'); return; } 
@@ -50,8 +50,6 @@ const handlerHome = () => {
                 value={stateSelected} on:change={handlerSelectChange} >
                 <Option value="">- Select a State - </Option>
                 {#each states as { state, stateName } }
-                    <!-- <Option data-value={stateObj.state}>{stateObj.stateName}</Option> -->
-
                     <Option value={state} selected={stateSelected === state}>{stateName}</Option>
                 {/each}
             </Select>

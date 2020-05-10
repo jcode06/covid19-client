@@ -1,21 +1,15 @@
-# Covid 19 Client
 A COVID-19 Client that consumes the COVID-19 API I made.
 
 ## Links
-[The COVID Tracking Project]
-(https://covidtracking.com/)
+[The COVID Tracking Project](https://covidtracking.com/)
 
-[Offline Cookbook for Service Workers, PWA]
-(https://jakearchibald.com/2014/offline-cookbook/#cache-persistence)
+[Offline Cookbook for Service Workers, PWA](https://jakearchibald.com/2014/offline-cookbook/#cache-persistence)
 
-[Intro to Service Workers]
-(https://developers.google.com/web/fundamentals/primers/service-workers)
+[Intro to Service Workers](https://developers.google.com/web/fundamentals/primers/service-workers)
 
-[Svelte D3 Example]
-(https://svelte.dev/repl/01a5774b53e9416584428c025668407b?version=3.15.0)
+[Svelte D3 Example](https://svelte.dev/repl/01a5774b53e9416584428c025668407b?version=3.15.0)
 
-[Cloropleth Map Example]
-(https://observablehq.com/@d3/choropleth)
+[Cloropleth Map Example](https://observablehq.com/@d3/choropleth)
 
 ---
 

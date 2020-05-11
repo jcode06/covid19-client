@@ -1,4 +1,5 @@
 A COVID-19 Client that consumes the COVID-19 API I made.
+http://www.johnpangilinan.com/covid19
 
 ## Links
 [The COVID Tracking Project](https://covidtracking.com/)

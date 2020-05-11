@@ -28,7 +28,7 @@ const handlerSelectChange = e => {
 const handlerMenu = () => {};
 
 const handlerHome = () => {
-    window.location = '/#';
+    window.location = '#';
 };
 
 </script>

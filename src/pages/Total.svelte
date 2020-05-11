@@ -188,7 +188,6 @@ onMount(async () => {
 
     pageTitle.set('Totals');
     currentPage.set('total');
-    currentState.set('');
 
     covidData = await model.get({ type: 'total', dateString });
 

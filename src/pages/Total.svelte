@@ -29,7 +29,12 @@ let types = {
 let tabs = Object.keys(types);
 let curType = 'positive';
 
-let dateString = moment().subtract(1, 'days').format('YYYYMMDD');
+// Use LA Time to get dateString, certain areas of the world can be ahead of us and throw off the map
+let dateString = moment()
+//    .tz(moment.tz.guess())
+    .tz('America/Los_Angeles')
+    .subtract(1, 'days')
+    .format('YYYYMMDD');
 let mapJson = {};
 
 let covidData = [];

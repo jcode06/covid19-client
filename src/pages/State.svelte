@@ -38,7 +38,14 @@ let tabs = Object.keys(types);
 let curType = types[activeTab];
 
 let stateName = '';
-let states = model.getStates();
+let states = Object.entries( model.getStates() || {})
+    // Exclude entities with no data
+    .filter( state => !['FM', 'MH', 'PW'].includes(state[0]) )
+    .reduce( (acc, state) => {
+        acc[state[0]] = state[1];
+        return acc;
+    }, {});
+
 
 let covidData = { headers: [], data: [] };
 let tableData = {};
@@ -53,11 +60,14 @@ let dialogRef;
 let dialogTitle = '';
 let dialogContent = '';
 
+let isFetchingData = false;
 
 // Setting the state triggers changes on the page, including changes to covidData
 $: {
     (async () => {
         if(dialogRef == undefined) { return; }
+        isFetchingData = true;
+
         state = params.state;
         stateName = states[state];
         
@@ -80,7 +90,7 @@ $: {
             dialogContent = "There was an error loading the page, please try reloading your browser";
             console.error('[State] There was an error fetching the data', e);
         }
-
+        isFetchingData = false;
     })();
 };
 
@@ -203,13 +213,37 @@ const dispatchHandlerHeaderClick = e => {
 const dispatchHandlerRowClick = e => {
     let target = e.detail.target;
     if(!target) { console.error('[State.dispatchHandlerRowClick] Unable to sort', event.target); return; }
-
 };
 
 const handlerClick = (e) => {
     curType = types[activeTab];
     chartData = getChartData(covidData.data, curType);
 };
+
+const handlerKeydown = function(e) {
+    if(isFetchingData === true) { return; }
+    if(!['ArrowUp', 'ArrowDown'].includes(e.key)) { return; }
+
+    let modifier = e.key === 'ArrowDown' ? +1 : -1;
+    let stateList = Object.keys(states);
+    let index = stateList.indexOf($currentState);
+
+    if(index >= 0) {
+        // increment the state list by +1/-1 depending on ArrowUp/ArrowDown
+        index += modifier;
+        
+        // keep the index inbounds, cycle around to the other side
+        index = (index > stateList.length - 1) ? 0 : index;
+        index = (index < 0) ? stateList.length - 1 : index;
+
+        if(activeColumn != 'undefined' && ['asc','desc'].includes(curDir)) {
+            push(`/state/${stateList[index]}/sort/${activeColumn}/${curDir}`);    
+        }
+        else {
+            push(`/state/${stateList[index]}/`);    
+        }
+    }
+}
 
 const handlerDialogClosed = function(e) { };
 
@@ -254,6 +288,8 @@ onMount( () => {
 <svelte:head>
     <title>CV Totals for {stateName}</title>
 </svelte:head>
+
+<svelte:body on:keydown|preventDefault={handlerKeydown} />
 
 {#if Object.keys(covidData).length > 0}
 <section class="content">

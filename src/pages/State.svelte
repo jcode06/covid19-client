@@ -10,9 +10,11 @@ import { currentPage, pageTitle, currentState } from '../stores.js';
 // presentational components
 import Tab, {Icon, Label} from '@smui/tab';
 import TabBar from '@smui/tab-bar';
+import Dialog, {Content, Actions, Title} from '@smui/dialog';
+import LinearProgress from '@smui/linear-progress';
+
 import LineChart from '../components/LineChart.svelte';
 import DisplayTable from '../components/DisplayTable.svelte';
-
 
 export let params;
 export let state;
@@ -38,30 +40,51 @@ let curType = types[activeTab];
 let stateName = '';
 let states = model.getStates();
 
-let covidData = [];
+let covidData = { headers: [], data: [] };
 let tableData = {};
 let chartData = [];
-let isTableLoaded = false;
-let isChartLoaded = false;
 
 // For table sorting
 let activeColumn = 'date';
 let curDir = 'desc';
 
+// local dialog variables
+let dialogRef;
+let dialogTitle = '';
+let dialogContent = '';
+
+
 // Setting the state triggers changes on the page, including changes to covidData
 $: {
     (async () => {
+        if(dialogRef == undefined) { return; }
         state = params.state;
         stateName = states[state];
         
         pageTitle.set(stateName);
         currentState.set(state);
 
-        covidData = await getData(state);
+        dialogTitle = "Please wait";
+        dialogContent = "Loading";
+        
+        // There's some sort of focus bug when opening up the dialog sometimes, what could be going on here?
+        try { dialogRef.open(); }
+        catch(e) { console.error(e); }
+
+        try {
+            covidData = await getData(state);
+            dialogRef.close();
+        }
+        catch(e) {
+            dialogTitle = "Error";
+            dialogContent = "There was an error loading the page, please try reloading your browser";
+            console.error('[State] There was an error fetching the data', e);
+        }
+
     })();
 };
 
-// Reactive statements for headers & tableData
+// Set the active column and direction from the params
 $: { 
     if(params) {
         let { sort, dir } = params;
@@ -72,36 +95,13 @@ $: {
 
 // Set up tableData whenever covidData changes
 $: { 
-    if(covidData && covidData.data) {
-        tableData = { 
-            headers: covidData.headers.slice(),
-            data: covidData.data.slice()
-        };
-        tableData.data = tableData.data.sort(sortData(activeColumn, curDir) );
-        tableData.data = tableData.data.map(row => {
-            let newObj = {};
-            for(let prop in row) {
-                if(!['state', 'country', 'day',
-                'positiveIncrease', 'deathIncrease', 'totalTestResultsIncrease']
-                    .includes(prop) ) { newObj[prop] = row[prop]; }
-            }
-
-            // custom attributes
-            newObj['date'] = `${row.date} (${row.day})`;
-            newObj['positive'] += ` (${row.positiveIncrease})`;
-            newObj['death'] += ` (${row.deathIncrease})`; 
-            newObj['totalTestResults'] += ` (${row.totalTestResultsIncrease})`; 
-
-            return newObj;
-        });
-    }
+    let newData = covidData.data.slice();
+    newData = newData.sort(sortData(activeColumn, curDir) );
+    tableData = getTableData(covidData.headers, newData);
 }
 
-$: chartData = (covidData && covidData.data && covidData.data.length > 0) ? getChartData([...covidData.data], curType) : [];
-
-$: isTableLoaded = (tableData && tableData.headers && tableData.data);
-$: isChartLoaded = (chartData && chartData.xData && chartData.yData);
-
+// Set up chart
+$: chartData = getChartData([...covidData.data], curType);
 
 
 const getChartData = (data, activeType) => {
@@ -138,30 +138,55 @@ const getChartData = (data, activeType) => {
     };    
 };
 
+const getTableData = (theHeaders, theData) => {
+    if(theHeaders == undefined || theData == undefined) 
+    { console.error(`[State.getTableData] No headers/data provided`); return; }
+
+    let newData = { 
+        headers: theHeaders.slice(),
+        data: theData.slice()
+    };
+
+    // For creating the cells in each row of the table
+    let tableCells = newData.headers.map(entry => entry.data);
+    
+    newData.data = theData.map(entry => {
+        let newRow = {};
+        for(let prop of tableCells) {
+            newRow[prop] = (isNaN(entry[prop])) ? entry[prop] : formatNumber(entry[prop]); 
+        }
+
+        let { date, day, positiveIncrease, deathIncrease, totalTestResultsIncrease } = entry;
+
+        // custom attributes
+        newRow['date'] = `${date} (${day})`;
+        newRow['positive'] += ` (${formatNumber(positiveIncrease)})`;
+        newRow['death'] += ` (${formatNumber(deathIncrease)})`; 
+        newRow['totalTestResults'] += ` (${formatNumber(totalTestResultsIncrease)})`; 
+
+        return newRow;
+    });
+    return newData;
+};
+
+// Helper function for formatting numbers
+const formatNumber = number => new Intl.NumberFormat().format(number);
+
 const sortData = (column, direction) => (first, second) => {
     let multiplier = (direction === 'asc') ? 1 : -1;
     return (first[column] < second[column]) ? multiplier * -1 : multiplier * 1;
 };
 
 const getData = async curState => {
-
-    if(!curState) { console.error('No state present'); return; }
-
-    let data = [];
-    try {
-        data = await model.get({ type: 'state', state: curState });
-    }
-    catch(e) {
-        console.error('[State - getData] - Error loading covidData', e);
-    }
-    return data;
+    if(!curState) { console.error('[State.getData] No state present'); return; }
+    return await model.get({ type: 'state', state: curState });
 }
 
 // Handles the sorting that occurs when a user clicks on the Header
 const dispatchHandlerHeaderClick = e => {
 
     let target = e.detail.target;
-    if(!target) { console.error('[State - dispatchHandlerHeaderClick] Unable to sort', event.target); return; }
+    if(!target) { console.error('[State.dispatchHandlerHeaderClick] Unable to sort', event.target); return; }
 
     let index = target.dataset.index;
     let newColumn = target.dataset.sort;
@@ -177,7 +202,7 @@ const dispatchHandlerHeaderClick = e => {
 
 const dispatchHandlerRowClick = e => {
     let target = e.detail.target;
-    if(!target) { console.error('Unable to sort', event.target); return; }
+    if(!target) { console.error('[State.dispatchHandlerRowClick] Unable to sort', event.target); return; }
 
 };
 
@@ -186,14 +211,16 @@ const handlerClick = (e) => {
     chartData = getChartData(covidData.data, curType);
 };
 
-onMount( () => {
-        state = params.state;
-        stateName = states[state];        
+const handlerDialogClosed = function(e) { };
 
-        // set the app store states
-        pageTitle.set(stateName);
-        currentState.set(state);
-        currentPage.set('state');
+onMount( () => {
+    state = params.state;
+    stateName = states[state];        
+
+    // set the app store states
+    pageTitle.set(stateName);
+    currentState.set(state);
+    currentPage.set('state');
 });
 
 </script>
@@ -202,6 +229,11 @@ onMount( () => {
         display: flex;
         flex-direction: column; 
     }
+    // Style for the child table
+    .content :global(.mdc-data-table th:hover) {
+        cursor: pointer;
+    }
+
     .charts { 
         display: flex;
         flex-direction: column;
@@ -223,6 +255,7 @@ onMount( () => {
     <title>CV Totals for {stateName}</title>
 </svelte:head>
 
+{#if Object.keys(covidData).length > 0}
 <section class="content">
     <section class="charts">
         <TabBar tabs={tabs} let:tab bind:active={activeTab} on:click={handlerClick}>
@@ -231,14 +264,22 @@ onMount( () => {
                 <Label>{tab}</Label>
             </Tab>
         </TabBar>
-        {#if isChartLoaded}
         <LineChart dataset={chartData} />
-        {/if}
     </section>
-    {#if isTableLoaded}
     <DisplayTable dataset={tableData} 
         on:headerClick={dispatchHandlerHeaderClick} 
         on:rowClick={dispatchHandlerRowClick} 
     />
-    {/if}
 </section>
+{/if}
+
+<Dialog bind:this={dialogRef} 
+    aria-labelledby="simple-title" 
+    aria-describedby="simple-content"
+    on:MDCDialog:closed={handlerDialogClosed}
+>
+    <!-- Title cannot contain leading whitespace due to mdc-typography-baseline-top() -->
+    <Title id="simple-title">{dialogTitle}</Title>
+    <Content id="simple-content">{dialogContent}</Content>
+    <LinearProgress indeterminate />
+</Dialog>

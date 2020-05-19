@@ -4,7 +4,7 @@ import * as d3 from 'd3';
 
 export let dataset = {
     xData: [],
-    yData: [],
+    barData: [],
     labels: { x: '', y: [] }, 
     min: { x: null, y: null },
     max: { x: null, y: null }
@@ -14,6 +14,7 @@ let container;
 let svg;
 let xScale;
 let yScale;
+let line;
 let chartWidth = window.innerWidth;
 let chartHeight = 300;
 let margin = { top: 30, right: 20, bottom: 30, left: 60 };
@@ -38,10 +39,19 @@ $: {
         .range([chartHeight - margin.top, 5 + margin.bottom]);
 }
 
+$: {
+    line = d3.line()
+        // .defined(d => !isNaN(d))
+        .x( (d, i) => xScale(dataset.xData[i]) )
+        .y(d => yScale(d) );
+}
+
 $: update({
     xData: dataset.xData,
-    yData: dataset.yData[0],
-    color: dataset.colors[0],
+    barData: dataset.barData,
+    barColor: dataset.barColor,
+    lineData: dataset.lineData,
+    lineColor: dataset.lineColor,
     width: chartWidth,
     height: chartHeight
 });
@@ -57,10 +67,10 @@ const computeDims = () => {
 };
 
 const update = params => {
-    let { xData, yData, color, width, height } = params;
+    let { xData, barData, lineData, barColor, lineColor, width, height } = params;
 
-    if(xData == undefined || yData == undefined) {
-        console.error('[BarLineChart.run] No data specified', xData, yData);
+    if(xData == undefined || barData == undefined) {
+        console.error('[BarLineChart.run] No data specified', xData, barData);
         return;
     }
 
@@ -72,9 +82,9 @@ const update = params => {
 
     const t = svg.transition().duration(750);
 
-    svg.select('g')
+    svg.select('g.chart')
         .selectAll('rect')
-        .data(yData)
+        .data(barData)
         .join(enter => {
                 enter.append('rect') 
                     .attr('x', (d, i) => xScale( xData[i] ) )
@@ -82,7 +92,7 @@ const update = params => {
                     .attr('width', (width / xData.length - 1) - 0.2 )
                     .attr('height', (d, i) => 0 )                  
                     .call(enter => enter.transition(t) 
-                        .attr('fill', color)
+                        .attr('fill', barColor)
                         .attr('y', d => yScale(d) )
                         .attr('height', (d, i) => yScale(0) - yScale(d) )
                     );
@@ -94,7 +104,7 @@ const update = params => {
                     .attr('width', (width / xData.length - 1) - 0.2 )
                     .attr('height', (d, i) => 0 )                  
                     .call(update => update.transition(t) 
-                        .attr('fill', color)
+                        .attr('fill', barColor)
                         .attr('y', d => yScale(d) )
                         .attr('height', (d, i) => yScale(0) - yScale(d) )
                     );
@@ -103,6 +113,49 @@ const update = params => {
                exit.remove()
             }
         );  
+
+    svg.selectAll('g.lineMovingAvg path').remove();
+
+    svg.select('g.lineMovingAvg')
+        .append('path')
+            // .style('display', 'none')
+            .attr('fill','none')
+            .attr('stroke-width', 3)
+            .attr('stroke-linejoin', 'round')
+            .attr('stroke-linecap', 'round')
+//            .attr('stroke', lineColor )
+        .datum(lineData)
+        .join('path')
+            .attr('d', d => line(0) )
+            .transition(t)
+                .attr('d', d => line(d) )
+                .attr('stroke', lineColor );
+
+
+    // svg.select('g')
+    //     .select('path')
+    //     .datum(lineData)
+    //     .join(enter => {
+    //         console.log(enter);
+    //         enter
+    //             .append('path')
+    //             .attr('d', d => line(d) )
+    //             .attr('stroke', lineColor );
+    //     },
+    //     update => {
+    //         console.log(update);
+    //         update
+    //             .attr('d', d => line(d) )
+    //             .attr('stroke', lineColor );
+
+    //     },
+    //     exit => {
+    //         console.log(exit);
+    //         exit.remove()
+
+    //         }
+    //     );
+
 
     svg.append("g")
         .attr('class', 'axis')
@@ -128,7 +181,8 @@ const handlerResize = () => {
 const handlerMount = () => {
     container = d3.select('.svg-container');
     svg = container.select('svg');
-    svg.append('g');
+    svg.append('g').attr('class', 'chart');
+    svg.append('g').attr('class', 'lineMovingAvg');
     
     let dims = computeDims();
     chartWidth = dims.width;
@@ -139,7 +193,10 @@ onMount(handlerMount);
 
 </script>
 <style>
-    .svg-container { height: 30vh; }
+    .svg-container { 
+        background-color: #e9e9e9;
+        height: 30vh; 
+    }
     @media (min-width: 640px) {
         .svg-container { height: 75vh; }
     }

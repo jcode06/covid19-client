@@ -22,16 +22,15 @@ export let state;
 
 
 let types = {
-    // 'Confirmeds and Mortalities': { type: 'positive_and_death', colors: ['blue', 'red']  },
-    'Confirmed Cases (daily)': { type: 'positiveIncrease', colors: ['blue'] },
-    'Mortalities (daily)': { type: 'deathIncrease', colors: ['red'] },
-    'Tested (daily)': { type: 'totalTestResultsIncrease', colors: ['green']},
-    'Confirmed Cases': { type: 'positive', colors: ['blue']},
-    'Mortalities': { type: 'death', colors: ['red']},
-    'Tested': { type: 'totalTestResults', colors: ['green'] },
-    'Hospitalized': { type: 'hospitalizedCurrently', colors: ['black']},
-    'In ICU': { type: 'inIcuCurrently', colors: ['black']},
-    'On Ventilator': { type: 'onVentilatorCurrently', colors: ['black']}
+    'Confirmed Cases (daily)': { type: 'positiveIncrease', barColor: '#a3bef9', lineColor: '#f57d00' },
+    'Mortalities (daily)': { type: 'deathIncrease', barColor: '#f79494', lineColor: '#02b147' },
+    'Tested (daily)': { type: 'totalTestResultsIncrease', barColor: '#99d493', lineColor: '#f57d00' },
+    'Confirmed Cases': { type: 'positive', barColor: '#a3bef9', lineColor: '#f57d00' },
+    'Mortalities': { type: 'death', barColor: '#f79494', lineColor: '#02b147'},
+    'Tested': { type: 'totalTestResults', barColor: '#99d493', lineColor: '#f57d00' },
+    'Hospitalized': { type: 'hospitalizedCurrently', barColor: '#ffb97c', lineColor: '#7cc2ff'},
+    'In ICU': { type: 'inIcuCurrently', barColor: '#ffb97c', lineColor: '#7cc2ff'},
+    'On Ventilator': { type: 'onVentilatorCurrently', barColor: '#ffb97c', lineColor: '#7cc2ff'}
 };
 let activeTab = Object.keys(types)[0];
 
@@ -118,32 +117,57 @@ $: chartData = getChartData([...covidData.data], curType);
 const getChartData = (data, activeType) => {
     if(!Array.isArray(data) ) { return []; }
 
-    let attributes, colors,
-        xData = [], yData = [],
+    let attributes, 
+        barColor,
+        lineColor,
+        xData = [], barData = [], lineData = [],
         yMinMax = { min: 0, max: 0 };
     
 
     let yReducer = list => (acc, cur) => {
         for(let i=0; i < list.length; i++) {
-            if(!acc[i]) { acc[i] = []; }
-            acc[i].push(cur[list[i]]);
+            // if(!acc) { acc = []; }
+            acc.push(cur[list[i]]);
         }
         return acc;
     };
 
+    let getRollingAvgs = list => {
+        let rollingSum = 0;
+        let rollingAvgs = [];
+        for(let i=0; i < list.length; i++) {
+            rollingSum += list[i];
+            if(i >= 7) { 
+                rollingSum -= list[i-7]; 
+                rollingAvgs[i] = Math.round(rollingSum / 7);
+            }
+            else {
+        //        rollingAvgs[i] = rollingSum / (i+1);
+                rollingAvgs[i] = 0;
+            }
+        }
+        return rollingAvgs;
+    };
+
+
     attributes = (activeType.type === 'positive_and_death') ? 
         ['positive', 'death'] : [activeType.type];
-    colors = activeType.colors;
+    barColor = activeType.barColor;
+    lineColor = activeType.lineColor;
 
     xData = data.map(row => new Date(row.date) );
-    yData = data.reduce( yReducer(attributes), []);
-    yMinMax = { min: Math.min(...yData.flat() ), max: Math.max(...yData.flat() ) };
+    barData = data.reduce( yReducer(attributes), []);
+    lineData = getRollingAvgs(barData);
 
+    yMinMax = { min: Math.min(...barData.flat() ), max: Math.max(...barData.flat() ) };
 
     return { 
-        xData, yData,
+        xData, 
+        barData,
+        lineData,
         labels: { 'x': 'date', 'y': attributes },
-        colors,
+        barColor,
+        lineColor,
         min: { x: xData[0], y: yMinMax.min},
         max: { x: xData[xData.length - 1], y: yMinMax.max}
     };    

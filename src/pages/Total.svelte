@@ -70,7 +70,7 @@ const handlerDialogClosed = function(e) { };
 
 
 onMount(async () => {
-    pageTitle.set(`Totals for ${curDate.format('M/DD/YYYY')}`);
+    pageTitle.set(`Totals through ${curDate.format('M/DD/YYYY')}`);
     currentPage.set('total');
     
     dialogTitle = "Please wait";

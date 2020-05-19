@@ -13,7 +13,8 @@ import TabBar from '@smui/tab-bar';
 import Dialog, {Content, Actions, Title} from '@smui/dialog';
 import LinearProgress from '@smui/linear-progress';
 
-import LineChart from '../components/LineChart.svelte';
+import BarLineChart from '../components/BarLineChart.svelte';
+// import LineChart from '../components/LineChart.svelte';
 import DisplayTable from '../components/DisplayTable.svelte';
 
 export let params;
@@ -300,7 +301,8 @@ onMount( () => {
                 <Label>{tab}</Label>
             </Tab>
         </TabBar>
-        <LineChart dataset={chartData} />
+        <BarLineChart dataset={chartData} />
+        <!-- <LineChart dataset={chartData} /> -->
     </section>
     <DisplayTable dataset={tableData} 
         on:headerClick={dispatchHandlerHeaderClick} 

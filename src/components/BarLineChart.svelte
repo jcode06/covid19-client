@@ -120,7 +120,7 @@ const update = params => {
         .append('path')
             // .style('display', 'none')
             .attr('fill','none')
-            .attr('stroke-width', 3)
+            .attr('stroke-width', 4)
             .attr('stroke-linejoin', 'round')
             .attr('stroke-linecap', 'round')
 //            .attr('stroke', lineColor )

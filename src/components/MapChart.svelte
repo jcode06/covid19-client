@@ -1,25 +1,42 @@
 <script>
-import { onMount, onDestroy } from 'svelte';
+import { createEventDispatcher, onMount, onDestroy } from 'svelte';
 import legend from 'd3-svg-legend';
 import * as d3 from 'd3';
 import * as topojson from 'topojson-client';
 
 window.d3 = d3;
-window.legend = legend;
 
 /*
 data should be a Map of key value pairs, e.g. { 'California' => 12345 }
 */
 export let dataset = new Map();
 
+const dispatch = createEventDispatcher();
+
 let usData;
 let svg;
+let zoom;
+
+let graphWidth, 
+    graphHeight,
+    viewportWidth,
+    viewportHeight;
 
 $: { 
     if(dataset instanceof Map && dataset.color && dataset.values) {
         update(usData, dataset);
     }
 };
+
+const computeDims = () => {
+    return {
+        width: document.querySelector('.map-container') != undefined ? 
+    document.querySelector('.map-container').getBoundingClientRect().width : window.innerWidth,
+            height: document.querySelector('.map-container') != undefined ? 
+    document.querySelector('.map-container').getBoundingClientRect().height : 300
+    };
+};
+
 
 const update = (usMapData, data) => {
     if(!svg || !usMapData || usMapData.length || 
@@ -28,6 +45,7 @@ const update = (usMapData, data) => {
         return; 
     }
 
+ 
     let values = Array.from(data.values() );
     let min = d3.min(values) > 0 ? d3.min(values) : 1;
     let max = d3.max(values);
@@ -42,10 +60,13 @@ const update = (usMapData, data) => {
         case 'red': colorScheme = d3.schemeReds[9]; break;
     }
 
-    let color = d3.scaleQuantize([min, max], colorScheme);
+    // let color = d3.scaleQuantize([min, max], colorScheme);
 
-window.d3 = d3;
-window.color = color;
+
+    const interpolator = d3.piecewise(d3.interpolateHsl, 
+        ["white",data.color]
+    );
+    let color = d3.scaleSequential([min, max], interpolator );
 
     // let color = d3.scaleLog()
     // let color = d3.scaleLinear()
@@ -56,7 +77,25 @@ window.color = color;
     svg.selectAll('path').remove();
     svg.selectAll('g').remove();
 
+    // Define zoom behavior for the graph
+    zoom = d3.zoom()
+        .scaleExtent([0.5, 5]) // zoom from 1x(original) to 5x
+        .translateExtent([[0-viewportWidth * .25, 0-viewportHeight * .25], [viewportWidth * 1.25, viewportHeight * 1.25]] )
+        .on('zoom', function() {
+            svg.selectAll('path')
+                .attr('transform', d3.event.transform);
+        } );
+
+    svg.call(zoom);
+
     let path = d3.geoPath();
+
+    // destroy any old event listeners before attaching new ones
+    svg.selectAll('path')
+        .on('click', null)
+        .on('mousemove', null)
+        .on('mouseout', null);
+
 
     svg.append('path')
         .datum(topojson.mesh(usMapData, usMapData.objects.states, (a, b) => a !== b))
@@ -70,11 +109,15 @@ window.color = color;
         .selectAll('path')
         .data(topojson.feature(usMapData, usMapData.objects.states).features )
         .join('path')
+            .attr('class', 'state')
             .attr("fill", d => color(data.get(d.properties.name)))
             .attr('stroke', '#999')
             .attr("stroke-linejoin", "round")
             .attr('stroke-width', 1)
-            .attr('d', path);
+            .attr('d', path)
+            .on('click', handlerClick )
+            .on('mousemove', handlerMouseover(data) )
+            .on('mouseout', handlerMouseout );
 
     let labels = [min, '', '', '', Math.round(max / 2), '', '', '', max];
     let colorLegend = legend.legendColor()
@@ -91,32 +134,89 @@ window.color = color;
         .call(colorLegend);            
 };
 
-const handlerOnMount = async () => {
 
+const handlerOnMount = async () => {
     try {
         usData = await d3.json("maps/counties-albers-10m.json");
 
         let container = document.querySelector('.map-container');
 
-        let graphWidth = 975, 
-            graphHeight = 610;
+        viewportWidth = 975, 
+        viewportHeight = 610;
 
-        d3.selectAll('.map-container *').remove();
-
-        svg = d3.select('.map-container')
-            .append('svg')
+        svg = d3.select('.map-container svg')
             .attr('class', 'svg-content')
             .style('width', '100%')
             .style('height', '100%')
-            .attr('viewBox', `0 0 ${graphWidth} ${graphHeight}`);
-
+            .attr('viewBox', `0 0 ${viewportWidth} ${viewportHeight}`);
+        
         update(usData, dataset);
     }
     catch(e) {
-        console.error('[Map] Error fetching map data', e);
+        console.error('[MapChart] Error fetching map data', e);
     }
 };
-const handlerOnDestroy = () => {};
+const handlerOnDestroy = () => {
+    if(svg == undefined) { return; }
+    console.log('[MapChart onDestroy] called');
+
+    svg.selectAll('path')
+        .on('click', null)
+        .on('mousemove', null)
+        .on('mouseout', null);
+};
+
+window.handlerOnDestroy = handlerOnDestroy;
+
+const handlerClick = function(e) {
+    dispatch('mapClick', { name: e.properties.name });
+};
+
+const handlerMouseenter = function(e) { 
+    dispatch('mapMouseenter', e);
+};  
+const handlerMouseover = data => function(e) { 
+    this.style.cursor = 'pointer';
+
+    let [x, y] = d3.mouse(svg.node()).map(d => parseInt(d) );
+    let { width, height } = document.querySelector('.map-container svg').getBoundingClientRect();
+
+    // Take proportional measurements based on the values provided to the svg's viewBox attribute
+    let xProportion = x / viewportWidth;
+    let yProportion = y / viewportHeight;
+
+    x = xProportion * width;
+    y = yProportion * height;
+
+    dispatch('mapMouseover', { 
+        x, y,
+        width, height,
+        name: e.properties.name, value: data.get(e.properties.name)
+    }); 
+};  
+const handlerMouseout = function(e) {     
+    this.style.cursor = 'default';
+    dispatch('mapMouseout', e);
+};  
+
+const handlerTouchstart = function(e) { dispatch('mapTouchstart', e) };  
+const handlerTouchmove = function(e) { dispatch('mapTouchmove', e) };  
+const handlerTouchend = function(e) { 
+
+
+    dispatch('mapTouchend', e) 
+};
+
+// let timeout;
+// const handlerResize = () => {
+//     if(timeout) { clearTimeout(timeout); }
+//     timeout = setTimeout( () => { 
+//         let dims = computeDims();
+//         graphWidth = dims.width;
+//         graphHeight = dims.height;
+//     }, 500);
+// };
+
 
 onMount(handlerOnMount);
 onDestroy(handlerOnDestroy);
@@ -139,8 +239,9 @@ onDestroy(handlerOnDestroy);
     .svg-content { 
         width: 100%;
         height: 100%;
-    }        
 
+    }        
+    
     @media (min-width: 640px) {
         .map-container {
             position: relative;
@@ -149,4 +250,9 @@ onDestroy(handlerOnDestroy);
     }
 </style>
 
-<div class="map-container"></div>
+<!-- <svelte:window on:resize={handlerResize} /> -->
+
+<div class="map-container">
+    <svg></svg>
+    <slot></slot>
+</div>

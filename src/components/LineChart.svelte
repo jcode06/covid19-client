@@ -93,7 +93,10 @@ const handlerResize = () => {
 };
 
 
-const handlerOnDestroy = () => {};
+const handlerOnDestroy = () => {
+    console.log('[LineChart onDestroy] called');
+    window.removeEventListener('resize', handlerResize);
+};
 
 onMount(handlerOnMount);
 onDestroy(handlerOnDestroy);

@@ -14,7 +14,6 @@ import Dialog, {Content, Actions, Title} from '@smui/dialog';
 import LinearProgress from '@smui/linear-progress';
 
 import BarLineChart from '../components/BarLineChart.svelte';
-// import LineChart from '../components/LineChart.svelte';
 import DisplayTable from '../components/DisplayTable.svelte';
 
 export let params;
@@ -102,6 +101,9 @@ $: {
         curDir = dir;
     }
 };
+
+// Whenever activeTab changes, update the chartData
+$: curType = types[activeTab];
 
 // Set up tableData whenever covidData changes
 $: { 
@@ -240,11 +242,6 @@ const dispatchHandlerRowClick = e => {
     if(!target) { console.error('[State.dispatchHandlerRowClick] Unable to sort', event.target); return; }
 };
 
-const handlerClick = (e) => {
-    curType = types[activeTab];
-    chartData = getChartData(covidData.data, curType);
-};
-
 const handlerKeydown = function(e) {
     if(isFetchingData === true) { return; }
     if(!['ArrowUp', 'ArrowDown'].includes(e.key)) { return; }
@@ -319,7 +316,7 @@ onMount( () => {
 {#if Object.keys(covidData).length > 0}
 <section class="content">
     <section class="charts">
-        <TabBar tabs={tabs} let:tab bind:active={activeTab} on:click={handlerClick}>
+        <TabBar tabs={tabs} let:tab bind:active={activeTab} >
             <!-- Notice that the `tab` property is required! -->
             <Tab {tab}>
                 <Label>{tab}</Label>

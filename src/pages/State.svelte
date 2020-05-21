@@ -33,7 +33,6 @@ let types = {
 };
 let activeTab = Object.keys(types)[0];
 
-let tabs = Object.keys(types);
 let curType = types[activeTab];
 
 let stateName = '';
@@ -316,7 +315,7 @@ onMount( () => {
 {#if Object.keys(covidData).length > 0}
 <section class="content">
     <section class="charts">
-        <TabBar tabs={tabs} let:tab bind:active={activeTab} >
+        <TabBar tabs={Object.keys(types)} let:tab bind:active={activeTab} >
             <!-- Notice that the `tab` property is required! -->
             <Tab {tab}>
                 <Label>{tab}</Label>

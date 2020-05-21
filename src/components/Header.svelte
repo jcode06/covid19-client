@@ -1,6 +1,7 @@
 <script>
 
 import { push } from 'svelte-spa-router';
+import moment from 'moment';
 
 import TopAppBar, {Row, Section, Title} from '@smui/top-app-bar';
 import IconButton from '@smui/icon-button';
@@ -9,28 +10,60 @@ import Option from '../lib/Option.svelte'; // Imported to src b/c there's a bug 
 import Icon from '@smui/select/icon/index';
 import HelperText from '@smui/select/helper-text/index';
 
-import { currentPage, pageTitle, currentState } from '../stores.js';
+import { curDate, currentPage, pageTitle, currentState } from '../stores.js';
 import model from '../model.js';
 
-let states = Object.entries( model.getStates() || [])
-    .map( list => ({ state: list[0], stateName: list[1] }))
-    // Exclude entities with no data
-    .filter( stateObj => !['FM', 'MH', 'PW'].includes(stateObj.state) );
+// header component variables
+let dateStringSelected = '';
 let stateSelected = '';
-$: stateSelected = $currentState;
 
-const handlerSelectChange = e => {
+$: stateSelected = $currentState;
+$: { 
+    if($curDate != undefined && $curDate != '') {
+        dateStringSelected = moment($curDate).format('YYYYMMDD');
+    }
+}
+
+
+const getDates = () => {
+    let starting = moment('20200301', 'YYYYMMDD');
+    let ending = moment();
+
+    const NUMDAYS = ending.diff(starting, 'days');
+
+    let dates = [];
+    for(let i=0; i <= NUMDAYS; i++) {
+        let timestamp = moment(ending)
+            .subtract(i, 'days')
+            .valueOf();
+        dates.push({ value: moment(timestamp).format('YYYYMMDD'), label: moment(timestamp).format('MM/DD/YYYY')});
+    }
+    return dates;
+};
+
+const getStates = () => {
+    return Object.entries( model.getStates() || [])
+        .map( list => ({ state: list[0], stateName: list[1] }))
+        // Exclude entities with no data
+        .filter( stateObj => !['FM', 'MH', 'PW'].includes(stateObj.state) );
+};
+
+const handlerSelectChange = currentPage => function(e) {
     if(! (e && e.target ) ) { console.error('[Header.handlerSelectChange] Error: unable to get Select target'); return; } 
-    const state = e.target.value;
-    push(`/state/${state}/`);    
+
+    switch(currentPage) {
+        case 'state':
+            push(`#/state/${ e.target.value }/`);    
+            break;
+        case 'total':
+            push(`#/total/${ e.target.value }/`);    
+            break;
+        break;
+    }
 };
 
 const handlerMenu = () => {};
-
-const handlerHome = () => {
-    window.location = '#';
-};
-
+const handlerHome = () => window.location = '#';
 </script>
 
 <style type="text/scss">
@@ -45,14 +78,25 @@ const handlerHome = () => {
     <Row>
         <Section>
             <!-- <IconButton class="material-icons" on:click={handlerMenu}>menu</IconButton> -->
-            {#if $currentPage !== 'total' }
+            {#if $currentPage === 'state' }
             <Select class="headerSelect"
-                value={stateSelected} on:change={handlerSelectChange} >
+                value={stateSelected} on:change={handlerSelectChange($currentPage)} >
                 <Option value="">- Select a State - </Option>
-                {#each states as { state, stateName } }
+                {#each getStates() as { state, stateName } }
                     <Option value={state} selected={stateSelected === state}>{stateName}</Option>
                 {/each}
             </Select>
+            {:else if $currentPage === 'total' }
+            <Title>
+                Totals through             
+                <Select class="headerSelect"
+                    value={dateStringSelected} on:change={handlerSelectChange($currentPage)} >
+                    <Option value="">- Select a Date - </Option>
+                    {#each getDates() as { label, value } }
+                        <Option {value} selected={dateStringSelected === value}>{label}</Option>
+                    {/each}
+                </Select>
+            </Title>
             {:else}
             <Title>{$pageTitle}</Title>
             {/if}

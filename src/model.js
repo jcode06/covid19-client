@@ -174,7 +174,7 @@ const model = () => {
         switch(type) {
             case 'total':
                 url += `states/${dateString}`;
-                localStore = 'covidResponse';
+                localStore = `covidResponse-US-${dateString}`;
                 formatFunc = mapCovidDataTotal;
                 headeExclusionList = ['positiveIncrease', 'deathIncrease', 
                     'totalTestResultsIncrease', 'stateName'];

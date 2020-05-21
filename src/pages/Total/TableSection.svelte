@@ -1,7 +1,10 @@
 <script>
-import DisplayTable from '../../components/DisplayTable.svelte';
+import moment from 'moment';
 import { push } from 'svelte-spa-router';
 
+import DisplayTable from '../../components/DisplayTable.svelte';
+
+export let timestampSelected;
 export let data = [];
 export let headers = [];
 export let activeColumn = '';
@@ -103,8 +106,10 @@ const dispatchHandlerHeaderClick = e => {
     curDir = (activeColumn !== newColumn) ? headers[index].defaultSort : 
         ((curDir === 'asc') ? 'desc' : 'asc');
     activeColumn = newColumn;
-    
-    push(`/sort/${activeColumn}/${curDir}`);
+      
+    let dateString = moment(timestampSelected).format('YYYYMMDD');
+
+    push(`#/total/${dateString}/sort/${activeColumn}/${curDir}`);
 };
 
 // Stub for Row Clicks on the Table

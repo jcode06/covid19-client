@@ -11,6 +11,8 @@ import State from './pages/State.svelte';
 const routes = {
 	'/': Total,
 	'/sort/:sort?/:dir?': Total,
+	'/total/:dateString': Total,
+	'/total/:dateString/sort/:sort?/:dir?': Total,
 	'/state/:state': State,
 	'/state/:state/sort/:sort?/:dir?': State
 };

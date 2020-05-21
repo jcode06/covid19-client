@@ -1,10 +1,11 @@
 <script>
 // library, model, and local app store
+import { push } from 'svelte-spa-router';
 import { onMount, onDestroy } from 'svelte';
 
 import moment from 'moment';
 import model from '../model.js';
-import { currentPage, pageTitle, totalPageModel } from '../stores.js';
+import { curDate, currentPage, pageTitle, totalPageModel } from '../stores.js';
 
 // presentational components    
 import Tab, {Icon, Label} from '@smui/tab';
@@ -30,12 +31,6 @@ let tabTypes = {
 };
 let activeTab;
 
-// Use LA Time to get dateString, certain areas of the world can be ahead of us and throw off the map
-let curDate = moment()
-    .tz('America/Los_Angeles')
-    .subtract(1, 'days');
-let dateString = curDate.format('YYYYMMDD');
-
 // source data, retrieved from localStorage or the API
 let covidData = { headers: [], data: [] };
 
@@ -48,31 +43,51 @@ let dialogRef;
 let dialogTitle = '';
 let dialogContent = '';
 
-// Set the active column and direction from the params
+// Use LA Time to get dateString, certain areas of the world can be ahead of us and throw off the map
+let timestampSelected; 
+
+let isFetchingData = false;
+
+// Set the active column, direction, and dateString from the params
+// NOTE: params doesn't get triggered if the URL path is the root ('/')
 $: { 
     if(params) {
-        let { sort, dir } = params;
+        let { sort, dir, dateString } = params;
+        
         activeColumn = sort;
         curDir = dir;
+        curDate.set( moment(dateString, 'YYYYMMDD').tz('America/Los_Angeles').valueOf() );
     }
 };
 
-// Set the active tab, deals with a Router refresh that happens from root to sorting a table row
-$: activeTab = $totalPageModel.active || 'Confirmed Cases (daily)';
+// $curDate will be a moment() timestamp
+// default will be yesterday's data
+//$: timestampSelected = $curDate || moment().tz('America/Los_Angeles').subtract(1, 'days').valueOf();
+$: timestampSelected = $curDate;
+$: { 
+    (async() => {
+        if(dialogRef == undefined) { return; }
+        if(timestampSelected == undefined || timestampSelected === '') { return; }
+        isFetchingData = true;
 
-// handlerTabClick will trigger a map change by changing mapType using the store
-const handlerTabClick = tab => e => {
-    totalPageModel.setMapType(tabTypes[tab]);
-    totalPageModel.setActive(tab);
+        console.log('timestampSelected', timestampSelected);
+        let dateString = moment(timestampSelected).format('YYYYMMDD');
+        covidData = await getData(dateString);
+
+        isFetchingData = false;
+    })();
 };
 
-const handlerDialogClosed = function(e) { };
+
+// Set the active tab, deals with a Router refresh that happens from root to sorting a table row
+$: { 
+    // console.log(activeTab);
+
+    // activeTab = $totalPageModel.active || 'Confirmed Cases (daily)';
+};
 
 
-onMount(async () => {
-    pageTitle.set(`Totals through ${curDate.format('M/DD/YYYY')}`);
-    currentPage.set('total');
-    
+const getData = async curDateString => {
     dialogTitle = "Please wait";
     dialogContent = "Loading";
     
@@ -80,15 +95,58 @@ onMount(async () => {
     try { dialogRef.open(); }
     catch(e) { console.error(e); }
 
+    let data = { headers: [], data: [] };
     // Fetch the data
     try {
-        covidData = await model.get({ type: 'total', dateString });
+        data = await model.get({ type: 'total', dateString: curDateString });
         dialogRef.close();
     }
     catch(e) {
         dialogTitle = "Error";
         dialogContent = "There was an error loading the page, please try reloading your browser";
-        console.error('[Total] There was an error fetching the data', e);
+        console.error('[Total.getData] There was an error fetching the data', e);
+    }
+    return data;
+};
+
+// handlerTabClick will trigger a map change by changing mapType using the store
+const handlerTabClick = tab => e => {
+    totalPageModel.setMapType(tabTypes[tab]);
+    totalPageModel.setActive(tab);
+};
+
+
+const handlerKeydown = function(e) {
+    if(isFetchingData === true) { return; }
+    if(!['ArrowUp', 'ArrowDown'].includes(e.key)) { return; }
+
+    let newDate = e.key === 'ArrowDown' ?
+        moment(timestampSelected).tz('UTC').subtract(1, 'days') : 
+        moment(timestampSelected).tz('UTC').add(1, 'days');
+
+    if(newDate > moment().tz('UTC') || newDate < moment('20200301', 'YYYYMMDD').tz('UTC') ) { 
+        console.log('exceeded todays date');
+        return;
+    }
+
+    if(activeColumn != 'undefined' && ['asc','desc'].includes(curDir)) {
+        push(`#/total/${newDate.format('YYYYMMDD')}/sort/${activeColumn}/${curDir}`);    
+    }
+    else {
+        push(`#/total/${newDate.format('YYYYMMDD')}/`);    
+    }
+}
+
+const handlerDialogClosed = function(e) { };
+
+onMount(async () => {
+    pageTitle.set(`Totals through ${moment(timestampSelected).format('M/DD/YYYY')}`);
+    currentPage.set('total');
+
+    // handle the initial page load case, where $curDate will have no value
+    // set $curDate to the current timestampSelected, which would be yesterday's date
+    if($curDate == undefined || $curDate == '') { 
+        curDate.set( moment().tz('America/Los_Angeles').subtract(1, 'days').valueOf() );
     }
 });
 </script>
@@ -124,8 +182,10 @@ onMount(async () => {
 </style>
 
 <svelte:head>
-    <title>CV Totals for the US ({ curDate.format('M/DD/YYYY') }) </title>
+    <title>CV Totals for the US ({ moment(timestampSelected).format('M/DD/YYYY') }) </title>
 </svelte:head>
+
+<svelte:body on:keydown|preventDefault={handlerKeydown} />
 
 {#if Object.keys(covidData).length > 0}
 <section class="content">
@@ -140,6 +200,7 @@ onMount(async () => {
     </section>
 
     <TableSection 
+        {timestampSelected}
         data={covidData.data}
         headers={covidData.headers}
         {activeColumn}

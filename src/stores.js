@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store';
 
+const curDate = writable('');
 const pageTitle = writable('');
 const currentPage = writable('');
 const currentState = writable('');
@@ -28,6 +29,8 @@ const totalPageModel = createTotalModel();
 
 export { 
     totalPageModel,
+    
+    curDate,
     pageTitle,
     currentState,
     currentPage,

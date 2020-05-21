@@ -24,12 +24,12 @@ let types = {
     'Confirmed Cases (daily)': { type: 'positiveIncrease', barColor: '#a3bef9', lineColor: '#f57d00' },
     'Mortalities (daily)': { type: 'deathIncrease', barColor: '#f79494', lineColor: '#02b147' },
     'Tested (daily)': { type: 'totalTestResultsIncrease', barColor: '#99d493', lineColor: '#f57d00' },
-    'Confirmed Cases': { type: 'positive', barColor: '#a3bef9', lineColor: '#f57d00' },
-    'Mortalities': { type: 'death', barColor: '#f79494', lineColor: '#02b147'},
-    'Tested': { type: 'totalTestResults', barColor: '#99d493', lineColor: '#f57d00' },
     'Hospitalized': { type: 'hospitalizedCurrently', barColor: '#ffb97c', lineColor: '#7cc2ff'},
     'In ICU': { type: 'inIcuCurrently', barColor: '#ffb97c', lineColor: '#7cc2ff'},
-    'On Ventilator': { type: 'onVentilatorCurrently', barColor: '#ffb97c', lineColor: '#7cc2ff'}
+    'On Ventilator': { type: 'onVentilatorCurrently', barColor: '#ffb97c', lineColor: '#7cc2ff'},
+    'Confirmed Cases': { type: 'positive', barColor: '#a3bef9', lineColor: '#f57d00' },
+    'Mortalities': { type: 'death', barColor: '#f79494', lineColor: '#02b147'},
+    'Tested': { type: 'totalTestResults', barColor: '#99d493', lineColor: '#f57d00' }
 };
 let activeTab = Object.keys(types)[0];
 

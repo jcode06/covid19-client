@@ -18,7 +18,7 @@ const mapTypes = {
     'deathIncrease': {
         attribute: 'deathIncrease',
         label: 'Daily Mortality',
-        color: 'orange'
+        color: 'red'
     },        
     'totalTestResultsIncrease': {
         attribute: 'totalTestResultsIncrease',
@@ -33,7 +33,7 @@ const mapTypes = {
     'death': {
         attribute: 'death',
         label: 'Total Deaths by State',
-        color: 'orange'
+        color: 'red'
     },
     'totalTestResults': {
         attribute: 'totalTestResults',

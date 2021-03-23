@@ -27,7 +27,7 @@ $: {
 
 const getDates = () => {
     let starting = moment('20200301', 'YYYYMMDD');
-    let ending = moment();
+    let ending = moment('20210307', 'YYYYMMDD');
 
     const NUMDAYS = ending.diff(starting, 'days');
 

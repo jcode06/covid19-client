@@ -146,7 +146,10 @@ onMount(async () => {
     // handle the initial page load case, where $curDate will have no value
     // set $curDate to the current timestampSelected, which would be yesterday's date
     if($curDate == undefined || $curDate == '') { 
-        curDate.set( moment().tz('America/Los_Angeles').subtract(1, 'days').valueOf() );
+        // hard code default date to 3/07/2021
+        // since the COVID Tracking data project ended their data collection on 03/07/2021
+        curDate.set( moment('20210307', 'YYYYMMDD').tz('America/Los_Angeles').valueOf() );
+        // curDate.set( moment().tz('America/Los_Angeles').subtract(1, 'days').valueOf() );
     }
 });
 </script>
